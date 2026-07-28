@@ -1,11 +1,22 @@
 # Demo Projects
 
-This repository is used to store small demo projects and UI/UX experiments.
+This repository stores small demo projects and UI/UX experiments.
 
-## Current project
-- UI/UX demo files for the dat file viewer prototype
+## Current demos
+- uiux-dat-viewer: simple DAT file viewer demo
+- inspection-form-demo: inspection form UI demo
 
-## Suggested structure for future demos
-- Create one folder per demo project
-- Keep each project self-contained with its own HTML/CSS/JS assets
-- Add a short description in this README when a new demo is added
+## Repository structure
+- demos/
+  - uiux-dat-viewer/
+    - dat_file_viewer.html
+  - inspection-form-demo/
+    - inspection_form_demo.html
+    - css/
+    - js/
+- docs/ for supporting documents, screenshots, and notes
+
+## Adding a new demo
+- Create a new folder inside demos/
+- Keep each demo self-contained with its own HTML/CSS/JS assets
+- Add a short description here when you add a new demo
