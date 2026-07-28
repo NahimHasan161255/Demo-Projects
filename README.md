@@ -14,7 +14,6 @@ This repository stores small demo projects and UI/UX experiments.
     - inspection_form_demo.html
     - css/
     - js/
-- docs/ for supporting documents, screenshots, and notes
 
 ## Adding a new demo
 - Create a new folder inside demos/
