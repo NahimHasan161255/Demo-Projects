@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>製品検査表 デモ</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+  <div class="sheet">
+
+    <!-- Title Header -->
+    <div class="titlebar">
+      <h1>製品検査表</h1>
+      <span>UI / UX デモ — 実測値のみ入力可</span>
+    </div>
+
+    <!-- Header Metadata Block -->
+    <div class="headerblock">
+      <div class="row">
+        <span class="label" style="font-weight: bolder;">製品検査データ</span>
+        <span class="val"></span>
+        <span class="label" style="font-weight: bolder;">柱マーク:</span>
+        <span class="val">K-1CXYF14</span>
+        <span class="label" style="font-weight: bolder;">寸法: </span>
+        <span class="val">W × F × t1 / t2 × L</span>
+      </div>
+      <div class="row">
+        <span class="label" style="font-weight: bolder;">品番</span>
+        <span class="val">①-1</span>
+        <span class="label"></span>
+        <span class="val">□950 × 950 × 50 × 7,003</span>
+      </div>
+    </div>
+
+    <!-- Section 1: 全長 -->
+    <div class="section" data-section="zenchou">
+      <div class="sec-header">
+        <span>全長</span>
+        <span class="chev">▼</span>
+      </div>
+      <div class="sec-body">
+        <div class="sec-body-inner">
+          <!-- <div class="banner">入力出来ます</div> -->
+          <div class="zenchou-grid">
+            <div class="col">
+              <div class="cell-head" style="font-weight: bold;">設計値</div>
+              <div class="cell-val">7,003.0 mm</div>
+            </div>
+            <div class="col">
+              <div class="cell-head" style="color: var(--red); border-color: var(--red);font-weight: bold;">実測値</div>
+              <input class="mval" id="zenchou-m" value="7,006.0" data-recalc="zenchou">
+            </div>
+            <div class="col">
+              <div class="cell-head" style="font-weight: bold;">許容値</div>
+              <div class="cell-val">±3.0 mm</div>
+            </div>
+            <div class="col">
+              <div class="cell-head" style="font-weight: bold;">差</div>
+              <div class="cell-val" id="zenchou-diff">+3.0 mm</div>
+            </div>
+          </div>
+        </div>
+        <div class="savebar">
+          <button data-action="save-next" data-current="zenchou" data-next="diaphragm"
+            style="font-weight: bold;">保存して次へ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: ダイアフラム位置 -->
+    <div class="section" data-section="diaphragm">
+      <div class="sec-header">
+        <span>ダイアフラム位置</span>
+        <span class="chev">▼</span>
+      </div>
+      <div class="sec-body">
+        <div class="sec-body-inner">
+          <table class="vt" id="dia-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>①</th>
+                <th>②</th>
+                <th>③</th>
+                <th>④</th>
+                <th>⑤</th>
+                <th>⑥</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="rowlabel">
+                <td><b>設計値</b></td>
+                <td>1,253.0</td>
+                <td>2,257.0</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr class="rowlabel measured-row">
+                <td><b>実測値</b></td>
+                <td><input class="mval" style="width:64px" id="dia-1" value="1254.0" data-recalc="dia" data-idx="1"
+                    data-design="1253.0"></td>
+                <td><input class="mval" style="width:64px" id="dia-2" value="2256.0" data-recalc="dia" data-idx="2"
+                    data-design="2257.0"></td>
+                <td><input class="mval empty" style="width:64px" value="" placeholder="—" disabled></td>
+                <td><input class="mval empty" style="width:64px" value="" placeholder="—" disabled></td>
+                <td><input class="mval empty" style="width:64px" value="" placeholder="—" disabled></td>
+                <td><input class="mval empty" style="width:64px" value="" placeholder="—" disabled></td>
+              </tr>
+              <tr class="rowlabel">
+                <td><b>許容値</b></td>
+                <td>±3.0</td>
+                <td>±3.0</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+              <tr class="rowlabel">
+                <td><b>差</b></td>
+                <td id="dia-diff-1">+1.0</td>
+                <td id="dia-diff-2">-1.0</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="savebar">
+          <button data-action="save-next" data-current="diaphragm" data-next="head"
+            style="font-weight: bold;">保存して次へ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: 柱頭・柱脚 -->
+    <div class="section" data-section="head">
+      <div class="sec-header">
+        <span>柱頭・柱脚</span>
+        <span class="chev">▼</span>
+      </div>
+
+      <div class="sec-body">
+        <div class="body-header">
+          <span>柱頭</span>
+          <span style="text-align: right;">柱脚</span>
+        </div>
+
+        <div class="sec-body-inner">
+          <table class="vt">
+            <thead>
+              <tr>
+                <th></th>
+                <th>N </th>
+                <th>S </th>
+                <th>E </th>
+                <th>W </th>
+                <th>N </th>
+                <th>S </th>
+                <th>E </th>
+                <th>W </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="rowlabel">
+                <td>設計値</td>
+                <td>950</td>
+                <td>950</td>
+                <td>950</td>
+                <td>950</td>
+                <td>950</td>
+                <td>950</td>
+                <td>950</td>
+                <td>950</td>
+              </tr>
+              <tr class="rowlabel measured-row">
+                <td>実測値</td>
+                <td><input class="mval" style="width:48px" id="h-n" value="950" data-recalc="simple" data-out="h-diff-n"
+                    data-design="950"></td>
+                <td><input class="mval" style="width:48px" id="h-s" value="949" data-recalc="simple" data-out="h-diff-s"
+                    data-design="950"></td>
+                <td><input class="mval" style="width:48px" id="h-e" value="951" data-recalc="simple" data-out="h-diff-e"
+                    data-design="950"></td>
+                <td><input class="mval" style="width:48px" id="h-w" value="951" data-recalc="simple" data-out="h-diff-w"
+                    data-design="950"></td>
+                <td><input class="mval" style="width:48px" id="f-n" value="952" data-recalc="simple" data-out="f-diff-n"
+                    data-design="950"></td>
+                <td><input class="mval" style="width:48px" id="f-s" value="952" data-recalc="simple" data-out="f-diff-s"
+                    data-design="950"></td>
+                <td><input class="mval" style="width:48px" id="f-e" value="953" data-recalc="simple" data-out="f-diff-e"
+                    data-design="950"></td>
+                <td><input class="mval" style="width:48px" id="f-w" value="952" data-recalc="simple" data-out="f-diff-w"
+                    data-design="950"></td>
+              </tr>
+              <tr class="rowlabel">
+                <td>許容値</td>
+                <td>±3</td>
+                <td>±3</td>
+                <td>±3</td>
+                <td>±3</td>
+                <td>±3</td>
+                <td>±3</td>
+                <td>±3</td>
+                <td>±3</td>
+              </tr>
+              <tr class="rowlabel">
+                <td>差</td>
+                <td id="h-diff-n">0</td>
+                <td id="h-diff-s">-1</td>
+                <td id="h-diff-e">+1</td>
+                <td id="h-diff-w">+1</td>
+                <td id="f-diff-n">+2</td>
+                <td id="f-diff-s">+2</td>
+                <td id="f-diff-e">+3</td>
+                <td id="f-diff-w">+2</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="savebar">
+          <button data-action="save-next" data-current="head" data-next="bend">保存して次へ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 4: 曲り・ねじれ -->
+    <div class="section" data-section="bend">
+      <div class="sec-header">
+        <span>曲り・ねじれ</span>
+        <span class="chev">▼</span>
+      </div>
+      <div class="sec-body">
+        <div class="sec-body-inner">
+          <table class="vt">
+            <thead>
+              <tr>
+                <th></th>
+                <th>曲り E面</th>
+                <th>曲り S面</th>
+                <th>ねじれ δ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="rowlabel">
+                <td>設計値</td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+              </tr>
+              <tr class="rowlabel measured-row">
+                <td>実測値</td>
+                <td><input class="mval" style="width:64px" id="b-e" value="-0.5" data-recalc="simple"
+                    data-out="b-diff-e" data-design="0"></td>
+                <td><input class="mval" style="width:64px" id="b-s" value="0.0" data-recalc="simple" data-out="b-diff-s"
+                    data-design="0"></td>
+                <td><input class="mval" style="width:64px" id="b-d" value="1.5" data-recalc="simple" data-out="b-diff-d"
+                    data-design="0"></td>
+              </tr>
+              <tr class="rowlabel">
+                <td>許容値</td>
+                <td>±4.5</td>
+                <td>±4.5</td>
+                <td>5.0</td>
+              </tr>
+              <tr class="rowlabel">
+                <td>差</td>
+                <td id="b-diff-e">-0.5</td>
+                <td id="b-diff-s">0.0</td>
+                <td id="b-diff-d">1.5</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="savebar">
+          <button data-action="save-next" data-current="bend" data-next="result">保存して次へ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 5: 検査結果 -->
+    <div class="section" data-section="result">
+      <div class="sec-header">
+        <span>検査結果</span>
+        <span class="chev">▼</span>
+      </div>
+      <div class="sec-body">
+        <div class="sec-body-inner">
+          <div class="kekka-grid">
+            <div class="col">
+              <div class="cell-head">板厚</div>
+              <div class="cell-val">適</div>
+            </div>
+            <div class="col">
+              <div class="cell-head">材質</div>
+              <div class="cell-val">適</div>
+            </div>
+            <div class="col">
+              <div class="cell-head">外観検査</div>
+              <div class="cell-val">適</div>
+            </div>
+            <div class="col">
+              <div class="cell-head">合否</div>
+              <div class="cell-val">合</div>
+            </div>
+          </div>
+          <div class="meta-row">
+            <span class="label">検査日</span>
+            <span>2026/09/04</span>
+          </div>
+          <div class="meta-row">
+            <span class="label">備考</span>
+            <span>特記事項なし</span>
+          </div>
+        </div>
+        <div class="savebar">
+          <button data-action="finish-form">保存して完了</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Application Script -->
+  <script src="js/app.js"></script>
+
+</body>
+
+</html>

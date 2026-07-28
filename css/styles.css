@@ -1,0 +1,316 @@
+/* ==========================================================================
+   Product Inspection Form Demo - Stylesheet
+   ========================================================================== */
+
+/* Design Tokens & Root Variables */
+:root {
+  --ink: #1a1a1a;
+  --line: #d8d8d8;
+  --line-strong: #333;
+  --red: #c0392b;
+  --red-bg: #fdecea;
+  --paper: #ffffff;
+  --bg: #eef0f2;
+  --muted: #6b6b6b;
+  --ok: #2f7d3c;
+}
+
+/* Global Reset & Base Layout */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 32px 16px 80px;
+  background: var(--bg);
+  font-family: "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic", -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--ink);
+  display: flex;
+  justify-content: center;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 760px;
+}
+
+/* Header & Title bar */
+.titlebar {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 10px;
+}
+
+.titlebar h1 {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.titlebar span {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.headerblock {
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  margin-bottom: 14px;
+  overflow: hidden;
+}
+
+.headerblock .row {
+  display: flex;
+  padding: 10px 16px;
+  font-size: 13px;
+}
+
+.headerblock .row + .row {
+  border-top: 1px solid var(--line);
+}
+
+.headerblock .label {
+  color: var(--muted);
+  margin-right: 22px;
+  white-space: nowrap;
+}
+
+.headerblock .val {
+  font-weight: 600;
+  margin-right: 32px;
+}
+
+/* Accordion Section Components */
+.section {
+  background: var(--paper);
+  border: 1px solid var(--line-strong);
+  border-radius: 2px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.section.open {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+}
+
+.sec-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 13px 16px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.sec-header:hover {
+  background: #fafafa;
+}
+
+.sec-header .chev {
+  font-size: 11px;
+  color: #444;
+  transition: transform 0.25s ease;
+  display: inline-block;
+}
+
+.section.open .chev {
+  transform: rotate(180deg);
+}
+
+.sec-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  border-top: 0px solid var(--line);
+}
+
+.section.open .sec-body {
+  border-top: 1px solid var(--line);
+}
+
+.sec-body-inner {
+  padding: 18px 16px 14px;
+}
+
+.banner {
+  font-size: 11px;
+  color: var(--red);
+  text-align: center;
+  margin-bottom: 14px;
+  letter-spacing: 0.05em;
+}
+
+/* Tables & Value Inputs */
+table.vt {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+table.vt th {
+  font-weight: 500;
+  color: var(--muted);
+  text-align: center;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--line);
+  width: auto;
+}
+
+table.vt td {
+  text-align: center;
+  padding: 9px 4px;
+  font-size: 13px;
+}
+
+table.vt tr.rowlabel td:first-child,
+table.vt tr.rowlabel th:first-child {
+  text-align: left;
+  color: var(--muted);
+  font-size: 11px;
+  padding-left: 2px;
+  width: 70px;
+}
+
+.measured-row td {
+  color: var(--red);
+  font-size: 11px;
+}
+
+input.mval {
+  width: 78px;
+  text-align: center;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--red);
+  border: 1px solid var(--red);
+  background: var(--red-bg);
+  border-radius: 3px;
+  padding: 6px 4px;
+  outline: none;
+}
+
+input.mval:focus {
+  box-shadow: 0 0 0 2px rgba(192, 57, 43, 0.25);
+}
+
+input.mval.empty {
+  border-style: dashed;
+  color: #999;
+  background: #f7f7f7;
+}
+
+.diff.bad {
+  color: var(--red);
+  font-weight: 600;
+}
+
+.diff.good {
+  color: var(--ink);
+}
+
+/* Save Bar & Navigation Controls */
+.savebar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px 16px 4px;
+  border-top: 1px solid var(--line);
+}
+
+.savebar button {
+  font-family: inherit;
+  font-size: 12px;
+  background: none;
+  border: 1px solid var(--line-strong);
+  border-radius: 3px;
+  padding: 7px 14px;
+  cursor: pointer;
+  color: var(--ink);
+}
+
+.savebar button:hover {
+  background: var(--ink);
+  color: #fff;
+}
+
+/* Section-Specific Grids */
+.zenchou-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.zenchou-grid .cell-head {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 6px 0;
+  margin-bottom: 8px;
+}
+
+.zenchou-grid .cell-val {
+  text-align: center;
+  font-size: 13px;
+}
+
+.zenchou-grid .col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.kekka-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.kekka-grid .cell-head {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 6px 0;
+  margin-bottom: 8px;
+}
+
+.kekka-grid .cell-val {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ok);
+}
+
+.meta-row {
+  display: flex;
+  font-size: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.meta-row .label {
+  color: var(--muted);
+  width: 70px;
+  flex-shrink: 0;
+}
+
+/* Responsive Layout */
+@media (max-width: 520px) {
+  .zenchou-grid,
+  .kekka-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
