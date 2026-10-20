@@ -1,0 +1,1644 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#172b3a">
+<title>設備点検ポータル | クライアントデモ</title>
+<style>
+:root {
+  color-scheme: light;
+  --ink: #172b3a;
+  --ink-soft: #52616b;
+  --muted: #7c898f;
+  --line: #e5e9e7;
+  --paper: #f5f6f2;
+  --white: #fff;
+  --navy: #172b3a;
+  --navy-2: #213a4a;
+  --accent: #edaa3b;
+  --accent-pale: #fff4df;
+  --green: #28785c;
+  --green-pale: #e8f4ed;
+  --amber: #a96508;
+  --amber-pale: #fff3dc;
+  --red: #ad4438;
+  --red-pale: #fbecea;
+  --blue: #426986;
+  --blue-pale: #eaf1f6;
+  --shadow: 0 12px 32px rgba(23, 43, 58, .06);
+  font-family: "Yu Gothic UI", "Meiryo", "Noto Sans JP", sans-serif;
+  font-synthesis: none;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-size: 14px; line-height: 1.6; }
+button, input, select, textarea { font: inherit; }
+button { color: inherit; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, a:focus-visible {
+  outline: 3px solid rgba(237, 170, 59, .55); outline-offset: 2px;
+}
+.shell { min-height: 100vh; }
+.sidebar {
+  position: fixed; inset: 0 auto 0 0; z-index: 20; display: flex; width: 248px; flex-direction: column;
+  padding: 24px 16px 18px; background: var(--navy); color: #f5f7f6;
+}
+.brand { display: flex; align-items: center; gap: 11px; padding: 0 8px 25px; }
+.brand-mark { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; background: var(--accent); color: var(--navy); }
+.brand-mark svg { width: 23px; height: 23px; }
+.brand-name { font-size: 15px; font-weight: 750; letter-spacing: .04em; }
+.brand-caption { color: #aab8bd; font-size: 10px; letter-spacing: .13em; }
+.side-label { margin: 2px 10px 9px; color: #91a2aa; font-size: 10px; font-weight: 700; letter-spacing: .12em; }
+.side-nav { display: grid; gap: 5px; }
+.side-nav a {
+  display: flex; min-height: 42px; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 9px;
+  color: #cad3d6; font-size: 12px; text-decoration: none; transition: background .15s, color .15s;
+}
+.side-nav a:hover, .side-nav a.active { background: rgba(255,255,255,.1); color: #fff; }
+.nav-number { display: grid; width: 23px; height: 23px; flex: none; place-items: center; border: 1px solid #526570; border-radius: 7px; color: #d3dcde; font-size: 10px; }
+.side-nav a.active .nav-number { border-color: var(--accent); background: var(--accent); color: var(--navy); font-weight: 800; }
+.device-mini { margin-top: auto; padding: 14px; border: 1px solid rgba(255,255,255,.13); border-radius: 12px; background: rgba(255,255,255,.055); }
+.device-mini-head { display: flex; align-items: center; justify-content: space-between; color: #a9b6bb; font-size: 10px; }
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: #72c99c; box-shadow: 0 0 0 4px rgba(114,201,156,.12); }
+.device-mini strong { display: block; margin-top: 8px; font-size: 16px; }
+.device-mini p { margin: 2px 0 0; color: #adbbc0; font-size: 11px; }
+.side-foot { padding: 12px 8px 0; color: #83959d; font-size: 10px; }
+.main { min-height: 100vh; margin-left: 248px; }
+.topbar {
+  position: sticky; top: 0; z-index: 15; display: flex; min-height: 62px; align-items: center; justify-content: space-between;
+  gap: 14px; padding: 10px clamp(18px, 3vw, 42px); border-bottom: 1px solid var(--line);
+  background: rgba(255,255,255,.94); backdrop-filter: blur(12px);
+}
+.crumb { color: var(--muted); font-size: 11px; }
+.crumb strong { color: var(--ink); font-weight: 650; }
+.top-actions { display: flex; align-items: center; gap: 8px; }
+.demo-pill { padding: 5px 9px; border: 1px solid #f0d49f; border-radius: 999px; background: var(--accent-pale); color: #835411; font-size: 10px; font-weight: 800; letter-spacing: .06em; }
+.button {
+  display: inline-flex; min-height: 36px; align-items: center; justify-content: center; gap: 7px;
+  padding: 7px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--white);
+  color: var(--ink); cursor: pointer; font-size: 11px; font-weight: 700; transition: transform .15s, background .15s, border-color .15s;
+}
+.button:hover { transform: translateY(-1px); border-color: #c8d0cc; background: #fafbf9; }
+.button svg { width: 15px; height: 15px; }
+.button-primary { border-color: var(--navy); background: var(--navy); color: #fff; }
+.button-primary:hover { border-color: var(--navy-2); background: var(--navy-2); }
+.button-accent { border-color: var(--accent); background: var(--accent); color: var(--navy); }
+.button-quiet { border-color: transparent; background: transparent; color: var(--ink-soft); }
+.content { width: min(1260px, 100%); margin: 0 auto; padding: 28px clamp(18px, 3vw, 42px) 70px; }
+.page-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+.eyebrow { margin: 0 0 5px; color: var(--amber); font-size: 10px; font-weight: 800; letter-spacing: .15em; }
+h1 { margin: 0; font-size: clamp(23px, 2.3vw, 30px); letter-spacing: -.04em; line-height: 1.3; }
+.heading-sub { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+.sample-tag { display: inline-flex; align-items: center; gap: 6px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink-soft); font-size: 10px; white-space: nowrap; }
+.sample-tag svg { width: 14px; height: 14px; color: var(--blue); }
+.equipment-card {
+  position: relative; display: grid; grid-template-columns: minmax(0,1fr) 216px; gap: 20px; overflow: hidden;
+  margin-bottom: 17px; padding: 21px 22px; border: 1px solid #dce4e2; border-radius: 15px;
+  background: linear-gradient(112deg, #fff 0%, #fff 67%, #f0f4ef 67%, #f0f4ef 100%); box-shadow: var(--shadow);
+}
+.equipment-card:after { position: absolute; top: -78px; right: 82px; width: 180px; height: 180px; border: 1px solid rgba(23,43,58,.055); border-radius: 50%; content: ""; }
+.equipment-title { display: flex; align-items: center; gap: 9px; margin-bottom: 13px; font-size: 12px; font-weight: 800; }
+.equipment-title .tag { padding: 3px 7px; border-radius: 5px; background: var(--green-pale); color: var(--green); font-size: 9px; }
+.equipment-fields { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 11px 15px; }
+.field label { display: block; margin-bottom: 4px; color: var(--muted); font-size: 10px; font-weight: 650; }
+.field input, .field select, .field textarea {
+  width: 100%; min-width: 0; min-height: 37px; padding: 7px 9px; border: 1px solid #e1e6e3;
+  border-radius: 7px; background: #fbfcfa; color: var(--ink); font-size: 12px;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color: #9baea7; background: #fff; outline: 0; }
+.field.span-2 { grid-column: span 2; }
+.crane-art { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; min-height: 110px; }
+.crane-art svg { width: min(195px,100%); height: auto; }
+.summary-grid { display: grid; grid-template-columns: 1.35fr repeat(3,minmax(105px,.7fr)); gap: 11px; margin-bottom: 17px; }
+.summary-card { min-height: 91px; padding: 14px 15px; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 4px 15px rgba(23,43,58,.025); }
+.summary-card.clickable { width: 100%; text-align: left; cursor: pointer; }
+.summary-card.clickable:hover { border-color: #c5cfca; }
+.summary-label { display: flex; align-items: center; justify-content: space-between; gap: 7px; color: var(--muted); font-size: 10px; font-weight: 700; }
+.summary-value { margin-top: 6px; font-size: 22px; font-weight: 800; letter-spacing: -.05em; line-height: 1.1; }
+.summary-value small { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0; }
+.progress-track { height: 6px; overflow: hidden; margin-top: 10px; border-radius: 99px; background: #edf0ed; }
+.progress-fill { width: 0; height: 100%; border-radius: inherit; background: var(--green); transition: width .25s ease; }
+.tone-warn { color: var(--amber); }.tone-bad { color: var(--red); }.tone-fixed { color: var(--blue); }
+.section-card { margin-bottom: 15px; overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: #fff; box-shadow: 0 5px 18px rgba(23,43,58,.025); scroll-margin-top: 78px; }
+.section-head { display: flex; align-items: center; gap: 11px; padding: 14px 17px; border-bottom: 1px solid var(--line); }
+.section-index { display: grid; width: 32px; height: 32px; flex: none; place-items: center; border-radius: 9px; background: var(--navy); color: #fff; font-size: 11px; font-weight: 800; }
+.section-title { min-width: 0; margin: 0; font-size: 13px; font-weight: 800; }
+.section-count { margin-left: auto; color: var(--muted); font-size: 10px; white-space: nowrap; }
+.group-title { display: flex; align-items: center; gap: 8px; padding: 9px 17px; border-bottom: 1px solid #eff1ef; background: #f8f9f6; color: var(--ink-soft); font-size: 10px; font-weight: 800; }
+.group-title:before { width: 3px; height: 13px; border-radius: 4px; background: var(--accent); content: ""; }
+.check-row { display: grid; grid-template-columns: 30px minmax(160px,1fr) auto; align-items: center; gap: 10px; min-height: 58px; padding: 8px 14px 8px 17px; border-bottom: 1px solid #f0f2f0; transition: background .15s; }
+.check-row:last-child { border-bottom: 0; }
+.check-row.status-warn { background: #fffaf0; }.check-row.status-bad { background: #fff6f4; }.check-row.status-fixed { background: #f5f8fb; }
+.check-no { color: #9aa5a4; font-family: ui-monospace, "Cascadia Mono", monospace; font-size: 10px; text-align: center; }
+.check-copy { min-width: 0; }
+.check-label { font-size: 11.5px; line-height: 1.5; }
+.class-pill { display: inline-block; min-width: 17px; margin-left: 7px; padding: 0 4px; border-radius: 4px; background: #eef1f0; color: #68777b; font-size: 9px; font-weight: 800; text-align: center; vertical-align: 1px; }
+.class-pill.class-A { background: #e9eff2; color: #294859; }.class-pill.class-B { background: #eef1ef; color: #62716e; }
+.row-controls { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+.status-button {
+  display: inline-grid; width: 34px; height: 32px; place-items: center; border: 1px solid #e3e8e5;
+  border-radius: 7px; background: #fff; color: #84918f; cursor: pointer; font-size: 15px; font-weight: 800;
+  transition: border-color .12s, background .12s, color .12s, transform .12s;
+}
+.status-button:hover { transform: translateY(-1px); border-color: #c4ceca; color: var(--ink); }
+.status-button[aria-pressed="true"][data-value="good"] { border-color: #9dcbb3; background: var(--green-pale); color: var(--green); }
+.status-button[aria-pressed="true"][data-value="warn"] { border-color: #e6c885; background: var(--amber-pale); color: var(--amber); }
+.status-button[aria-pressed="true"][data-value="bad"] { border-color: #e5b1ab; background: var(--red-pale); color: var(--red); }
+.status-button[aria-pressed="true"][data-value="fixed"] { border-color: #b9ccdb; background: var(--blue-pale); color: var(--blue); }
+.status-button[aria-pressed="true"][data-value="na"] { border-color: #cbd1ce; background: #f2f4f2; color: #5f6a68; }
+.clear-status { padding: 5px 2px 5px 5px; border: 0; background: transparent; color: #899391; cursor: pointer; font-size: 9px; }
+.remark-input { grid-column: 2 / -1; width: 100%; min-height: 33px; margin: -2px 0 4px; padding: 6px 9px; border: 1px solid #e5d9bc; border-radius: 6px; background: rgba(255,255,255,.8); font-size: 11px; }
+.remark-input::placeholder { color: #9a9180; }
+.check-row.status-bad .remark-input { border-color: #e5c5c1; }
+.followup-editor { grid-column: 2 / -1; display: grid; grid-template-columns: minmax(0,1.4fr) minmax(100px,.7fr) minmax(125px,.8fr) minmax(110px,.7fr); gap: 7px; padding: 0 0 5px; }
+.followup-editor label { display: grid; gap: 3px; color: var(--muted); font-size: 9px; }
+.followup-editor input,.followup-editor select { width: 100%; min-width: 0; min-height: 32px; padding: 5px 7px; border: 1px solid #e1e6e3; border-radius: 6px; background: #fff; font-size: 10px; }
+.followup-editor label:first-child { grid-column: 1 / -1; }
+.followup-required { color: var(--red); font-size: 8px; }
+.not-applicable-row { display: grid; grid-template-columns: 30px 1fr; align-items: center; gap: 10px; min-height: 45px; padding: 8px 17px; border-bottom: 1px solid #f0f2f0; background: #fafbf9; color: #77827f; }
+.source-note { display: flex; align-items: flex-start; gap: 9px; margin: 0 0 15px; padding: 11px 13px; border: 1px solid #e9ddc2; border-radius: 9px; background: #fffaf0; color: #715829; font-size: 10px; }
+.source-note strong { white-space: nowrap; }
+.toolbar-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 20px 0 9px; }
+.toolbar-title { margin: 0; font-size: 15px; font-weight: 800; }
+.check-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.search-box { position: relative; }
+.search-box svg { position: absolute; top: 10px; left: 10px; width: 14px; height: 14px; color: #81908b; }
+.search-box input { width: min(220px,40vw); min-height: 35px; padding: 7px 10px 7px 31px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 11px; }
+.filter-select { min-height: 35px; padding: 6px 28px 6px 9px; border: 1px solid var(--line); border-radius: 8px; background: #fff; color: var(--ink-soft); font-size: 10px; }
+.empty-filter { display: none; margin: 0 0 15px; padding: 17px; border: 1px dashed #cbd3cf; border-radius: 10px; color: var(--muted); font-size: 11px; text-align: center; }
+.annual-card { margin-bottom: 15px; padding-bottom: 6px; }
+.annual-card[aria-disabled="true"] { background: #fafbf9; }
+.annual-intro { margin: 12px 17px 0; color: var(--muted); font-size: 10px; }
+.annual-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 11px; padding: 15px 17px 17px; }
+.annual-group { grid-column: 1 / -1; margin-top: 2px; padding-bottom: 5px; border-bottom: 1px solid var(--line); color: var(--ink-soft); font-size: 10px; font-weight: 800; }
+.annual-field label { display: block; margin-bottom: 4px; color: var(--muted); font-size: 10px; }
+.annual-input-wrap { display: flex; align-items: center; gap: 6px; }
+.annual-field input, .annual-field select { width: 100%; min-width: 0; min-height: 35px; padding: 6px 8px; border: 1px solid #e1e6e3; border-radius: 7px; background: #fbfcfa; font-size: 11px; }
+.annual-unit { color: #89948f; font-size: 9px; white-space: nowrap; }
+.notes-grid { display: grid; grid-template-columns: minmax(0,1fr) minmax(130px,.45fr) minmax(130px,.45fr); gap: 12px; padding: 16px 17px; }
+.notes-grid textarea { min-height: 85px; resize: vertical; }
+.seal-preview { display: flex; align-items: center; gap: 9px; }
+.seal-preview input { flex: 1; }
+.seal { display: grid; width: 37px; height: 37px; flex: none; place-items: center; border: 2px solid #c5584d; border-radius: 50%; color: #b84e44; font-size: 10px; font-weight: 800; transform: rotate(-8deg); }
+.results-list { display: grid; gap: 8px; margin: 0; padding: 14px 17px 17px; list-style: none; }
+.results-list li { display: flex; align-items: flex-start; gap: 8px; padding: 9px 10px; border-radius: 7px; background: #f8f9f6; font-size: 10px; }
+.result-badge { min-width: 19px; padding: 1px 4px; border-radius: 4px; font-weight: 800; text-align: center; }
+.result-badge.warn { background: var(--amber-pale); color: var(--amber); }.result-badge.bad { background: var(--red-pale); color: var(--red); }.result-badge.fixed { background: var(--blue-pale); color: var(--blue); }
+.footer-note { margin: 18px 0 0; color: #8b9691; font-size: 9px; text-align: center; }
+.toast {
+  position: fixed; right: 22px; bottom: 22px; z-index: 60; max-width: min(430px,calc(100vw - 32px)); padding: 11px 15px;
+  border: 1px solid #c9d8cf; border-radius: 9px; background: #fff; box-shadow: var(--shadow); color: var(--ink);
+  font-size: 11px; opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity .18s,transform .18s;
+}
+.toast.visible { opacity: 1; transform: translateY(0); }
+.toast.error { border-color: #e5b1ab; color: var(--red); }
+.modal-backdrop { position: fixed; inset: 0; z-index: 70; display: none; align-items: center; justify-content: center; padding: 18px; background: rgba(14,28,37,.48); }
+.modal-backdrop.open { display: flex; }
+.modal { width: min(480px,100%); max-height: min(82vh,760px); overflow: auto; padding: 22px; border-radius: 14px; background: #fff; box-shadow: 0 24px 80px rgba(0,0,0,.2); }
+.modal h2 { margin: 0; font-size: 17px; }
+.modal p { margin: 8px 0 0; color: var(--muted); font-size: 11px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 17px; }
+.print-only { display: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; clip-path: inset(50%); }
+.module-nav { margin: 0 0 24px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+.module-nav a { min-height: 44px; }
+.module-nav a { color: var(--ink-soft); }
+.module-nav a:hover,.module-nav a.active { background: var(--navy); color: #fff; }
+.module-nav .nav-number { border-color: #d6ddda; color: var(--ink-soft); }
+.module-nav a.active .nav-number { border-color: var(--accent); color: var(--navy); }
+.module-view[hidden],.forklift-panel[hidden] { display: none !important; }
+.home-welcome { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 21px; }
+.home-date { color: var(--muted); font-size: 11px; }
+.home-metrics { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 12px; margin: 18px 0 22px; }
+.home-metric { padding: 15px 17px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.home-metric span { color: var(--muted); font-size: 10px; font-weight: 700; }
+.home-metric strong { display: block; margin-top: 5px; font-size: 23px; }
+.module-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 13px; }
+.module-card { display: flex; min-height: 214px; flex-direction: column; padding: 18px; border: 1px solid var(--line); border-radius: 13px; background: #fff; box-shadow: 0 5px 18px rgba(23,43,58,.025); }
+.module-card:hover { border-color: #c4cec9; }
+.module-icon { display: grid; width: 39px; height: 39px; place-items: center; border-radius: 11px; background: var(--green-pale); color: var(--green); }
+.module-icon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.module-card:nth-child(2) .module-icon { background: var(--accent-pale); color: var(--amber); }
+.module-card:nth-child(3) .module-icon { background: var(--blue-pale); color: var(--blue); }
+.module-card h2 { margin: 13px 0 4px; font-size: 14px; }
+.module-card p { margin: 0; color: var(--muted); font-size: 10px; }
+.module-card .button { align-self: flex-start; margin-top: auto; padding-top: 8px; }
+.module-card-count { display: inline-flex; align-items: center; gap: 5px; margin-top: 10px; color: var(--ink-soft); font-size: 9px; }
+.module-card-count:before { width: 6px; height: 6px; border-radius: 50%; background: var(--green); content: ""; }
+.source-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; border-radius: 5px; background: #f1f4f2; color: #67756f; font-size: 9px; }
+.module-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.module-heading h1 { font-size: clamp(21px,2.2vw,27px); }
+.module-heading p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
+.module-actions { display: flex; gap: 7px; }
+.form-card { margin-bottom: 14px; padding: 17px; border: 1px solid var(--line); border-radius: 12px; background: #fff; box-shadow: 0 4px 15px rgba(23,43,58,.025); }
+.form-card-title { margin: 0 0 12px; font-size: 12px; font-weight: 800; }
+.form-fields { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 11px; }
+.forklift-tabs { display: flex; gap: 5px; margin-bottom: 13px; padding: 4px; border: 1px solid var(--line); border-radius: 9px; background: #eef1ee; width: fit-content; }
+.forklift-tabs button { min-height: 34px; padding: 6px 12px; border: 0; border-radius: 6px; background: transparent; color: var(--ink-soft); cursor: pointer; font-size: 10px; font-weight: 700; }
+.forklift-tabs button[aria-selected="true"] { background: #fff; color: var(--ink); box-shadow: 0 1px 4px rgba(23,43,58,.1); }
+.inspection-panel[hidden] { display:none !important; }
+.table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 10px; background: #fff; }
+.inspection-table,.inventory-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+.inspection-table th,.inventory-table th { position: sticky; top: 0; z-index: 1; padding: 10px 9px; background: #f4f6f3; color: var(--ink-soft); font-size: 9px; font-weight: 800; text-align: left; white-space: nowrap; }
+.inspection-table td,.inventory-table td { padding: 8px 9px; border-top: 1px solid #edf0ed; vertical-align: middle; }
+.inspection-table tr:hover td,.inventory-table tr:hover td { background: #fbfcfa; }
+.day-cell,.month-cell { width: 54px; color: var(--muted); font-weight: 800; white-space: nowrap; }
+.inspection-table select,.inspection-table input,.inventory-controls select,.inventory-controls input { min-height: 32px; padding: 5px 7px; border: 1px solid #e1e6e3; border-radius: 6px; background: #fff; font-size: 10px; }
+.inspection-table select { width: 100%; min-width: 76px; }
+.inspection-table input { width: 100%; min-width: 100px; }
+.inspection-table .day-number { width: 39px; color: var(--muted); text-align: center; }
+.table-status { display: inline-flex; align-items: center; gap: 5px; }
+.table-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #7a8b84; }
+.table-status-dot.warn { background: var(--amber); }.table-status-dot.bad { background: var(--red); }.table-status-dot.na { background: #aab3ae; }
+.forklift-monthly-summary { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.inventory-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.inventory-controls input { flex: 1 1 190px; }
+.inventory-controls select { min-width: 145px; }
+.inventory-table .plant-cell { color: var(--muted); white-space: nowrap; }
+.capacity-pill { display: inline-flex; padding: 3px 7px; border-radius: 5px; background: var(--blue-pale); color: var(--blue); font-size: 9px; font-weight: 800; white-space: nowrap; }
+.expiry-soon { color: var(--red); font-weight: 800; }
+.table-empty { padding: 21px !important; color: var(--muted); text-align: center; }
+.inspection-mode-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 11px; background: #fff; }
+.inspection-mode-label { flex: 1 1 200px; color: var(--muted); font-size: 10px; }
+.inspection-mode-label strong { display: block; margin-bottom: 2px; color: var(--ink); font-size: 11px; }
+.mode-button { min-height: 34px; padding: 6px 11px; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: var(--ink-soft); cursor: pointer; font-size: 10px; font-weight: 700; }
+.mode-button[aria-pressed="true"] { border-color: var(--navy); background: var(--navy); color: #fff; }
+.sample-callout { margin: 0 0 14px; padding: 10px 13px; border: 1px solid #e8d6b1; border-radius: 8px; background: #fffaf0; color: #735b31; font-size: 10px; }
+.sample-callout strong { margin-right: 5px; }
+.draft-callout { margin: 0 0 14px; padding: 10px 13px; border: 1px solid #c8d9e4; border-radius: 8px; background: #f2f7fa; color: #456578; font-size: 10px; }
+.inventory-provenance { margin: 0 0 12px; padding: 10px 12px; border: 1px solid #e9ddc2; border-radius: 8px; background: #fffaf0; color: #715829; font-size: 10px; }
+.print-summary { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; margin-top: 13px; }
+.print-summary div { padding: 9px; border-radius: 7px; background: #f5f7f4; font-size: 10px; }
+.print-summary strong { display: block; margin-bottom: 3px; color: var(--muted); font-size: 9px; }
+.preview-issues { max-height: 180px; overflow: auto; margin: 12px 0 0; padding-left: 20px; font-size: 10px; }
+.preview-warning { margin-top: 11px !important; padding: 8px 10px; border-radius: 7px; background: var(--amber-pale); color: #80560d !important; }
+@media (max-width: 1050px) {
+  .equipment-card { grid-template-columns: minmax(0,1fr) 160px; }
+  .summary-grid { grid-template-columns: 1.2fr repeat(3,minmax(90px,.7fr)); }
+  .check-row { grid-template-columns: 25px minmax(130px,1fr) auto; gap: 7px; padding-right: 10px; padding-left: 12px; }
+  .status-button { width: 30px; }
+  .module-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 780px) {
+  .sidebar { position: sticky; top: 0; width: 100%; height: auto; padding: 9px 12px; }
+  .brand { padding: 0 3px 9px; }
+  .brand-mark { width: 31px; height: 31px; border-radius: 9px; }
+  .brand-mark svg { width: 19px; height: 19px; }
+  .brand-name { font-size: 13px; }.brand-caption,.device-mini,.side-foot,.side-label { display: none; }
+  .side-nav { display: flex; overflow-x: auto; gap: 4px; padding-bottom: 1px; scrollbar-width: none; }
+  .side-nav a { min-height: 34px; flex: none; gap: 6px; padding: 5px 8px; font-size: 10px; }
+  .nav-number { width: 19px; height: 19px; font-size: 9px; }
+  .module-nav { padding-bottom: 8px; }
+  .module-nav a { min-height: 34px; }
+  .main { margin-left: 0; }
+  .topbar { top: 92px; min-height: 51px; padding: 7px 15px; }
+  .content { padding: 21px 14px 40px; }
+  .equipment-card { grid-template-columns: 1fr; padding: 16px; background: #fff; }
+  .crane-art { display: none; }
+  .equipment-fields { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px 11px; }
+  .summary-grid { grid-template-columns: repeat(3,minmax(0,1fr)); gap: 7px; }
+  .summary-card:first-child { grid-column: 1 / -1; }
+  .summary-card { min-height: 75px; padding: 11px; }
+  .summary-value { font-size: 19px; }
+  .section-head { padding: 11px 12px; }
+  .check-row { grid-template-columns: 24px minmax(0,1fr); gap: 6px 8px; padding: 9px 10px; }
+  .check-copy { grid-column: 2; }
+  .row-controls { grid-column: 1 / -1; justify-content: stretch; padding-left: 31px; }
+  .row-controls .status-button { width: auto; height: 34px; flex: 1; font-size: 16px; }
+  .row-controls .clear-status { min-width: 35px; }
+  .remark-input,.followup-editor { grid-column: 2 / -1; }
+  .followup-editor { grid-template-columns: 1fr 1fr; }
+  .followup-editor label:first-child { grid-column: 1 / -1; }
+  .annual-grid { grid-template-columns: repeat(2,minmax(0,1fr)); padding: 12px; }
+  .notes-grid { grid-template-columns: 1fr 1fr; padding: 12px; }
+  .notes-grid > :first-child { grid-column: 1 / -1; }
+  .toolbar-line { align-items: flex-start; flex-direction: column; }
+  .check-tools { width: 100%; }
+  .search-box { flex: 1; }.search-box input { width: 100%; }
+  .home-metrics { gap: 7px; }
+  .home-metric { padding: 11px; }
+  .home-metric strong { font-size: 19px; }
+  .module-grid { grid-template-columns: 1fr; }
+  .module-card { min-height: 176px; }
+  .form-fields { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .form-fields .field:last-child { grid-column: span 2; }
+  .inspection-table { min-width: 720px; }
+  .inventory-table { min-width: 620px; }
+  .module-heading { align-items: flex-start; flex-direction: column; }
+}
+@media (max-width: 420px) {
+  .crumb { display: none; }.demo-pill { display: none; }
+  .top-actions { gap: 5px; }.top-actions .button { min-height: 33px; padding: 5px 8px; font-size: 10px; }
+  .page-heading { align-items: flex-start; flex-direction: column; gap: 10px; }
+  .equipment-fields { grid-template-columns: 1fr 1fr; }
+  .field.span-2 { grid-column: 1 / -1; }
+  .notes-grid { grid-template-columns: 1fr; }.notes-grid > :first-child { grid-column: auto; }
+}
+@media print {
+  @page { size: A4 portrait; margin: 12mm; }
+  body { background: #fff; color: #111; font-size: 9pt; }
+  .sidebar,.topbar,.sample-tag,.check-tools,.summary-grid,.source-note,.footer-note,.toast,.modal-backdrop,.clear-status,.module-nav,.forklift-tabs,.module-actions,.inventory-controls,.inspection-mode-switch { display: none !important; }
+  .main { margin: 0; }.content { width: 100%; padding: 0; }
+  .page-heading { margin-bottom: 10px; }.page-heading h1 { font-size: 18pt; }
+  .equipment-card,.section-card { break-inside: avoid; box-shadow: none; }
+  .equipment-card { grid-template-columns: 1fr; margin-bottom: 8px; padding: 10px; background: #fff; }
+  .crane-art { display: none; }.equipment-fields { grid-template-columns: repeat(4,1fr); gap: 5px; }
+  .field input,.field select { min-height: 25px; padding: 3px 5px; background: #fff; }
+  .section-card { margin-bottom: 8px; }.section-head { padding: 7px 9px; }.group-title { padding: 5px 9px; }
+  .check-row { grid-template-columns: 24px 1fr auto; min-height: 0; gap: 5px; padding: 4px 8px; }
+  .followup-editor { grid-column: 2 / -1; grid-template-columns: repeat(4,1fr); gap: 4px; }
+  .followup-editor label:first-child { grid-column: 1 / -1; }
+  .check-label { font-size: 8pt; }.status-button { width: 24px; height: 22px; font-size: 11px; }
+  .annual-grid { grid-template-columns: repeat(4,1fr); gap: 5px; padding: 8px; }
+  .annual-field input,.annual-field select { min-height: 24px; padding: 3px 5px; }
+  .notes-grid { grid-template-columns: 1fr .4fr .4fr; gap: 6px; padding: 8px; }
+  .notes-grid textarea { min-height: 45px; }.results-list { gap: 3px; padding: 8px; }
+  .results-list li { padding: 4px; }.print-only { display: block; }
+  .inspection-table,.inventory-table { min-width: 0; font-size: 7pt; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" aria-label="点検ナビゲーション">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 5h18M5 5v2m14-2v2M7 7v3m10-3v3M4 10h16M8 10v2m8-2v2M6 12h12M12 12v4m-2 0h4m-3 0v3m-2 0h4"/>
+        </svg>
+      </span>
+      <span><span class="brand-name">設備点検</span><br><span class="brand-caption">INSPECTION PORTAL</span></span>
+    </div>
+    <div class="side-label">点検メニュー</div>
+    <nav class="side-nav" id="moduleNav">
+      <a href="#dashboardHome" data-module="home"><span class="nav-number">⌂</span>ホーム</a>
+      <a href="#craneModule" data-module="crane"><span class="nav-number">01</span>クレーン点検</a>
+      <a href="#forkliftModule" data-module="forklift"><span class="nav-number">02</span>フォークリフト点検</a>
+      <a href="#inventoryModule" data-module="inventory"><span class="nav-number">03</span>クレーン設備台帳</a>
+    </nav>
+    <div class="device-mini">
+      <div class="device-mini-head"><span>選択中の設備</span><span class="live-dot"></span></div>
+      <strong id="sideCraneNo">点検ポータル</strong>
+      <p id="sideLocation">3つの点検・設備メニュー</p>
+    </div>
+    <div class="side-foot">設備点検ポータル v2.1</div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb">設備点検 <span aria-hidden="true">/</span> <strong id="crumbTitle">ホーム</strong></div>
+      <div class="top-actions">
+        <span class="demo-pill" id="demoPill">DEMO / 記入例</span>
+        <button class="button" id="saveButton" data-top-action="inspection" type="button" title="このブラウザーに下書きを保存">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h12l3 3v13H4V4z"/><path d="M8 4v6h8V4M8 20v-7h8v7"/></svg>下書き保存
+        </button>
+        <button class="button button-primary" id="printButton" data-top-action="print" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 8V3h10v5M7 17H5a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5h-2"/><path d="M7 14h10v7H7z"/></svg>印刷内容を確認
+        </button>
+        <button class="button button-accent" id="registerButton" data-top-action="inspection" type="button">確認・登録</button>
+      </div>
+    </header>
+
+    <main class="content">
+      <section class="module-view" id="dashboardHome">
+        <div class="home-welcome">
+          <div><p class="eyebrow">INSPECTION WORKSPACE</p><h1>設備点検ポータル</h1><p class="heading-sub">点検記録と設備情報を、ここからまとめて確認できます。</p></div>
+          <span class="demo-pill">DEMO / CLIENT PREVIEW</span>
+        </div>
+        <div class="home-metrics">
+          <div class="home-metric"><span>デモメニュー</span><strong>3</strong></div>
+          <div class="home-metric"><span>クレーン設備台帳</span><strong id="homeCraneCount">—</strong></div>
+          <div class="home-metric"><span>フォークリフト記録</span><strong>日常・月例</strong></div>
+        </div>
+        <div class="module-grid">
+          <article class="module-card">
+            <span class="module-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M3 5h18M5 5v2m14-2v2M7 7v3m10-3v3M4 10h16M8 10v2m8-2v2M6 12h12M12 12v4m-2 0h4m-3 0v3c0 2 3 2 3 0v-1"/></svg>
+            </span><h2>クレーン月例点検</h2>
+            <p>記入後サンプルPDFをもとにした62項目の自主検査記録。点検区分、所見、年次測定値を入力できます。</p>
+            <span class="module-card-count">62項目・年次点検</span>
+            <button class="button button-primary" type="button" data-open-module="crane">点検画面を開く →</button>
+          </article>
+          <article class="module-card">
+            <span class="module-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M3 5v11h12V9h-4l-2-4H3Zm12 7h3l3 3v1h-6"/><circle cx="7" cy="18" r="2"/><circle cx="18" cy="18" r="2"/><path d="M21 4v11m-3-11v8"/></svg>
+            </span><h2>フォークリフト点検</h2>
+            <p>Excel原票にある日常点検（日ごと）と月例点検（月ごと・年12回）を切り替えて記録できます。</p>
+            <span class="module-card-count">4つの点検区分・備考</span>
+            <button class="button button-primary" type="button" data-open-module="forklift">点検画面を開く →</button>
+          </article>
+          <article class="module-card">
+            <span class="module-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M3 20h18M5 20V8l7-4 7 4v12M9 20v-6h6v6M8 9h.01M12 9h.01M16 9h.01"/></svg>
+            </span><h2>クレーン設備台帳</h2>
+            <p>配置図Excelの工場別一覧からクレーン番号、定格荷重、検査証番号、期限を絞り込めます。</p>
+            <span class="module-card-count">工場別・検索・フィルター</span>
+            <button class="button button-primary" type="button" data-open-module="inventory">設備一覧を開く →</button>
+          </article>
+        </div>
+        <p class="footer-note">この画面は提示用デモです。実際の記録や設備情報はサーバーへ送信されません。</p>
+      </section>
+
+      <section class="module-view" id="craneModule" hidden>
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow">CRANE · MONTHLY INSPECTION</p>
+          <h1>クレーン月例点検</h1>
+          <p class="heading-sub">点検箇所ごとに状態を記録し、気になる項目を確認できます。</p>
+        </div>
+        <div class="sample-tag" id="craneSourceTag">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v5c0 5 3.4 8.2 8 10 4.6-1.8 8-5 8-10V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+          記入例PDFをもとにしたサンプル
+        </div>
+      </div>
+
+      <section class="equipment-card" aria-labelledby="equipmentHeading">
+        <div>
+          <div class="equipment-title" id="equipmentHeading">設備情報 <span class="tag">対象設備</span></div>
+          <div class="equipment-fields">
+            <div class="field"><label for="location">設置場所</label><input id="location" value="第1工場"></div>
+            <div class="field"><label for="craneNo">クレーン番号</label><input id="craneNo" value="1-天1"></div>
+            <div class="field"><label for="certificateNo">検査証番号</label><input id="certificateNo" value="1106"></div>
+            <div class="field"><label for="expiryDate">検査証期限</label><input id="expiryDate" type="date" value="2025-09-23"></div>
+            <div class="field span-2"><label for="craneType">クレーン種類</label><input id="craneType" value="10tホイスト式天井クレーン"></div>
+            <div class="field span-2"><label for="hoistModel">ホイスト形式・機番</label><input id="hoistModel" value=""></div>
+            <div class="field span-2"><label for="inspectionDate">点検日</label><input id="inspectionDate" type="date" value="2025-07-01"></div>
+            <div class="field span-2"><label for="inspector">点検者</label><input id="inspector" value="酒井"></div>
+          </div>
+        </div>
+        <div class="crane-art" aria-hidden="true">
+          <svg viewBox="0 0 220 135" fill="none">
+            <path d="M15 20h190M32 20v17m156-17v17M43 37h134M53 37v21m114-21v21M34 58h152" stroke="#516873" stroke-width="5" stroke-linecap="round"/>
+            <path d="M78 58v12m64-12v12M70 70h80M84 70v11m52-11v11M73 81h74" stroke="#74878c" stroke-width="4" stroke-linecap="round"/>
+            <path d="M110 58v30" stroke="#d49a3b" stroke-width="3"/>
+            <path d="M110 88v13c0 9 13 9 13 1v-2" stroke="#d49a3b" stroke-width="3" stroke-linecap="round"/>
+            <path d="M45 113h130M60 105v17m100-17v17" stroke="#d9e0dc" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="110" cy="58" r="5" fill="#edaa3b"/>
+          </svg>
+        </div>
+      </section>
+
+      <section class="equipment-card" aria-labelledby="frequencyHeading" style="grid-template-columns:1fr;background:#fff;padding-top:15px;padding-bottom:15px">
+        <div class="equipment-fields" style="grid-template-columns:minmax(140px,.55fr) 1fr">
+          <div class="field"><label id="frequencyHeading">今月の点検区分</label></div>
+          <fieldset id="inspectionMode" style="display:flex;flex-wrap:wrap;gap:7px;margin:0;padding:0;border:0" aria-label="今月の点検区分">
+            <legend class="sr-only">今月の点検区分</legend>
+          </fieldset>
+        </div>
+      </section>
+
+      <section class="summary-grid" aria-label="点検状況">
+        <div class="summary-card">
+          <div class="summary-label"><span>点検の進捗</span><span id="progressText">0 / 0</span></div>
+          <div class="summary-value" id="progressPercent">0<small>% 完了</small></div>
+          <div class="progress-track" role="progressbar" id="progressBar" aria-label="入力進捗" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+        <button class="summary-card clickable" type="button" data-filter="all">
+          <span class="summary-label">対象項目</span><span class="summary-value" id="totalCount">0</span>
+        </button>
+        <button class="summary-card clickable" type="button" data-filter="issues">
+          <span class="summary-label">要確認</span><span class="summary-value tone-warn" id="issueCount">0</span>
+        </button>
+        <button class="summary-card clickable" type="button" data-filter="unanswered">
+          <span class="summary-label">未入力</span><span class="summary-value" id="unansweredCount">0</span>
+        </button>
+      </section>
+
+      <div class="toolbar-line">
+        <h2 class="toolbar-title">点検チェックリスト</h2>
+        <div class="check-tools">
+          <label class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></svg>
+            <span class="sr-only">項目を検索</span><input id="searchInput" type="search" placeholder="項目名・番号で検索" autocomplete="off">
+          </label>
+          <select id="filterSelect" class="filter-select" aria-label="表示項目">
+            <option value="all">すべて表示</option>
+            <option value="issues">要確認のみ</option>
+            <option value="unanswered">未入力のみ</option>
+          </select>
+          <button class="button button-quiet" id="newInspectionButton" type="button">判定をリセット</button>
+        </div>
+      </div>
+
+      <p class="source-note"><strong>原票について</strong><span>記入後サンプルPDFの点検番号40は項目名が空欄のため、内容を補わず未使用の原票行として表示しています。点検項目数には含めていません。</span></p>
+      <div id="checklist"></div>
+      <p class="empty-filter" id="emptyFilter">条件に一致する点検項目はありません。</p>
+
+      <section class="section-card annual-card" id="annualSection">
+        <div class="section-head"><span class="section-index">年</span><h2 class="section-title">年次点検</h2><span class="section-count">区分④で入力</span></div>
+        <p class="annual-intro">必要に応じて測定値と良否を記入してください。サンプル値は記入後PDFの参考値です。</p>
+        <div class="annual-grid" id="annualGrid"></div>
+      </section>
+
+      <section class="section-card" id="notesSection">
+        <div class="section-head"><span class="section-index">記</span><h2 class="section-title">補足・見解事項 / 点検者</h2><span class="section-count">記録情報</span></div>
+        <div class="notes-grid">
+          <div class="field"><label for="generalNote">補足・見解事項</label><textarea id="generalNote" placeholder="気づいた点、処置内容など"></textarea></div>
+          <div class="field"><label for="recordDate">点検記入日</label><input id="recordDate" type="date" value="2025-07-01"></div>
+          <div class="field"><label>点検者</label><div class="seal-preview"><input id="inspectorSeal" value="酒井" aria-label="押印表示名"><span class="seal" id="sealText" aria-label="押印イメージ">酒井</span></div></div>
+        </div>
+      </section>
+
+      <section class="section-card" id="resultsSection">
+        <div class="section-head"><span class="section-index">!</span><h2 class="section-title">要確認項目</h2><span class="section-count" id="resultsCount">0件</span></div>
+        <ul class="results-list" id="resultsList"><li>要注意・不良・処置実施の項目がここに表示されます。</li></ul>
+      </section>
+      <p class="footer-note">デモ画面です。点検記録の下書きはこのブラウザー内に保存され、サーバーへの送信は行いません。</p>
+      </section>
+
+      <section class="module-view" id="forkliftModule" hidden>
+        <div class="module-heading">
+          <div><p class="eyebrow">FORKLIFT · DAILY & MONTHLY</p><h1>フォークリフト点検</h1><p>日常点検・月例点検のExcel原票にある項目を記録します。</p></div>
+          <span class="source-chip">Excel原票に基づくデモ</span>
+        </div>
+        <section class="form-card">
+          <h2 class="form-card-title">点検情報</h2>
+          <div class="form-fields">
+            <div class="field"><label for="forkliftYear">点検年</label><input id="forkliftYear" type="number" min="2000" max="2100" value="2025"></div>
+            <div class="field" id="forkliftMonthField"><label for="forkliftMonth">点検月</label><select id="forkliftMonth"></select></div>
+            <div class="field" id="forkliftDailyInspectorField"><label for="forkliftDailyInspector">点検者</label><input id="forkliftDailyInspector" value="奥田 将弘"></div>
+            <div class="field" id="forkliftMonthlyInspectorField" hidden><label for="forkliftMonthlyInspector">点検者</label><input id="forkliftMonthlyInspector" value="山下友泰"></div>
+            <div class="field"><label for="forkliftId">フォークリフト番号（デモ）</label><input id="forkliftId" value="FL-01"></div>
+          </div>
+        </section>
+        <div class="forklift-tabs" role="tablist" aria-label="フォークリフト点検種別">
+          <button id="dailyTab" type="button" role="tab" aria-selected="true" aria-controls="dailyPanel">日常点検（日ごと）</button>
+          <button id="monthlyTab" type="button" role="tab" aria-selected="false" aria-controls="monthlyPanel">月例点検（月ごと）</button>
+        </div>
+        <section class="inspection-panel" id="dailyPanel" role="tabpanel" aria-labelledby="dailyTab">
+          <div class="form-card" style="padding:0">
+            <div style="padding:14px 15px">
+              <h2 class="form-card-title" style="margin-bottom:4px">フォークリフト日常点検表</h2>
+              <p class="heading-sub">選択した月について、原票の4点検区分を日ごとに記録します。</p>
+            </div>
+            <div class="table-wrap">
+              <table class="inspection-table">
+                <thead><tr><th>日</th><th>制動・操縦装置</th><th>荷役・油圧装置</th><th>車輪の異常</th><th>照明・警報装置</th><th>備考</th></tr></thead>
+                <tbody id="forkliftDailyRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        <section class="inspection-panel" id="monthlyPanel" role="tabpanel" aria-labelledby="monthlyTab" hidden>
+          <div class="form-card" style="padding:0">
+            <div style="padding:14px 15px">
+              <h2 class="form-card-title" style="margin-bottom:4px">フォークリフト月例点検表</h2>
+              <p class="heading-sub">日ごとの記録ではありません。原票の4点検区分を、1月から12月まで各月1行ずつ記録します。</p>
+            </div>
+            <div class="table-wrap">
+              <table class="inspection-table">
+                <thead><tr><th>月</th><th>日</th><th>制動・操縦装置</th><th>荷役・油圧装置</th><th>車輪の異常</th><th>照明・警報装置</th><th>備考</th></tr></thead>
+                <tbody id="forkliftMonthlyRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+        <p class="footer-note">月例点検表は毎月の点検結果を記録する表です。点検区分の名称はフォークリフトExcel原票を参照し、個別の点検基準や合否基準は追加していません。</p>
+      </section>
+
+      <section class="module-view" id="inventoryModule" hidden>
+        <div class="module-heading">
+          <div><p class="eyebrow">CRANE · EQUIPMENT REGISTER</p><h1>クレーン設備台帳</h1><p>配置図Excelの工場別設備情報を一覧で確認します。</p></div>
+          <span class="source-chip">配置図Excelを参照</span>
+        </div>
+        <section class="home-metrics">
+          <div class="home-metric"><span>掲載設備</span><strong id="inventoryCount">0</strong></div>
+          <div class="home-metric"><span>工場</span><strong>5</strong></div>
+          <div class="home-metric"><span>検索対象</span><strong>番号・検査証</strong></div>
+        </section>
+        <div class="inventory-controls">
+          <input id="inventorySearch" type="search" placeholder="クレーン番号・検査証番号で検索" aria-label="クレーン設備を検索">
+          <select id="plantFilter" aria-label="工場で絞り込む">
+            <option value="">すべての工場</option>
+            <option value="第1工場">第1工場</option><option value="第2工場">第2工場</option>
+            <option value="第3工場">第3工場</option><option value="第4工場">第4工場</option>
+            <option value="第5工場">第5工場</option>
+          </select>
+        </div>
+        <p class="inventory-provenance">参照元: 配置図Excel「2025.4（クレーン検査）」シート。Excel内には複数時点のシートがあるため、この一覧を最新の正式台帳とは扱わず、実運用前に原本との照合が必要です。検査証期限も原票記載値を表示しています。</p>
+        <div class="table-wrap">
+          <table class="inventory-table">
+            <thead><tr><th>設置工場</th><th>クレーン番号</th><th>定格荷重</th><th>検査証番号</th><th>検査証期限</th><th>操作</th></tr></thead>
+            <tbody id="inventoryRows"></tbody>
+          </table>
+        </div>
+        <p class="footer-note">原票に記載された設備をサンプル表示しています。検査証期限は原票の和暦表記をそのまま表示します。台帳はExcelの置換ではなく、操作イメージ用デモです。</p>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="modal-backdrop" id="modalBackdrop" role="presentation">
+  <section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalText">
+    <h2 id="modalTitle"></h2><p id="modalText"></p><div id="modalBody"></div>
+    <div class="modal-actions"><button class="button" id="modalCancel" type="button">閉じる</button><button class="button button-primary" id="modalConfirm" type="button">確認</button></div>
+  </section>
+</div>
+
+<script>
+"use strict";
+const sections = [
+  { id: "hoist", title: "ホイスト関係（巻上・横行）", groups: [
+    ["押釦スイッチ", [[1,"外観、ケーブル貫通部の異常の有無","A"],[2,"インターロックは完全か、正常に戻るか","A"],[3,"配線及び接地線の状態","C"],[4,"接点の損傷、摩耗状態はどうか","A"]]],
+    ["ワイヤロープ", [[5,"素線切れはないか","A"],[6,"摩耗の状況","A"],[7,"キンク、形くずれ、腐食の有無","A"],[8,"ロープエンド及びエコライザーシーブと接触する部分","B"]]],
+    ["フック・エコライザー関係", [[9,"スラストベアリング回転の状況","A"],[10,"フックナットの回り止め状況","A"],[11,"シーブ損傷の有無","A"],[12,"シーブケース、キープレートの損傷、ゆるみ有無","A"],[13,"フックの亀裂、摩耗、変形の有無","A"],[14,"エコライザーシーブの回転、損傷、取付部","C"]]],
+    ["電磁ブレーキ", [[15,"鉄心間隙は適正か","B"],[16,"鉄心、ネジ・ピンの摩耗、ゆるみの状況","C"],[17,"ライニング摩耗、ブレーキ歯車の状況","C"]]],
+    ["電磁接触器", [[18,"作動の確認","A"],[19,"接点の損傷及び摩耗の状態","B"],[20,"配線、締付ネジのゆるみ","C"]]],
+    ["リミットスイッチ", [[21,"リミットレバーの作動状態","A"],[22,"配線締付ネジのゆるみ","C"],[23,"接点の状態","C"]]],
+    ["給油", [[24,"巻上ギヤーケース","B"],[25,"横行ギヤーケース","B"]]],
+    ["その他", [[26,"走行側板、締付ボルトのゆるみ、割ピン脱落の有無","C"],[27,"本体の亀裂の有無","C"],[28,"横行車輪の摩耗","C"]]]
+  ]},
+  { id: "cable", title: "給電関係・操作ケーブル", groups: [
+    ["機内配線", [[29,"配線ケーブルの外傷の有無","C"],[30,"メッセンジャーワイヤー及びキャリアの状態","B"],[31,"操作ケーブルの状態","B"],[32,"操作ケーブル保護の状態","B"],[33,"スイッチ箱の取付状態","C"]]],
+    ["コレクター", [[34,"コレクタ・ホイルの回転の状態","A"],[35,"コレクタ・ホイルの摩耗の状態","B"],[36,"変形、取付状態、ケーブルとの接続部","C"]]],
+    ["トロリ線", [[37,"トロリ線のたわみ、さび、よごれの有無","B"],[38,"トロリ線イヤ及び支持がいしの状態","B"],[39,"電源スイッチの状態","B"]]],
+    ["原票の空欄", [[40,"",""]]]
+  ]},
+  { id: "girder", title: "クレーンガーダ関係", groups: [
+    ["ガーダ及びサドル", [[41,"横行レール及び横行ストッパの取付状態","B"],[42,"ガーダーとサドルの取付ボルトのゆるみの有無","C"],[43,"ホイールギヤ歯面及び車軸の給油状態","B"],[44,"走行車軸の踏面、フランジの摩耗","C"],[45,"車輪軸、キープレートの変形、ゆるみ","C"],[46,"ボルト・ピン等の異常の有無","C"],[47,"走行電動機、減速機取付ボルトのゆるみの有無","C"],[48,"サドルのバッファの固定状態","C"],[49,"チェーン又はVベルトのゆるみの有無","C"]]],
+    ["電磁接触器", [[50,"作動の確認","A"],[51,"接点の損傷及び摩耗の状態","B"],[52,"配線、締付ネジのゆるみ","C"]]]
+  ]},
+  { id: "run", title: "無負荷運転・走行レール", groups: [
+    ["無負荷運転（巻上下）", [[53,"巻上下の作動が正しいか異常音はないか","A"],[54,"リミットは正しく作動するか","A"],[55,"ブレーキは正常に作動するか","A"]]],
+    ["無負荷運転（横行）", [[56,"横行の作動が正しいか異常音がないか","A"]]],
+    ["無負荷運転（走行）", [[57,"走行の作動が正しいか異常音がないか","A"],[58,"斜行またはだ行しないか","A"],[59,"走行範囲の障害物の有無","A"],[60,"ストッパの変形脱落及び取付ボルトのゆるみ","A"]]],
+    ["走行レール", [[61,"レールの異常摩耗の有無","C"],[62,"レール・ジブ等取付ボルトゆるみの有無","C"],[63,"レールの曲り及び異常の有無","C"]]]
+  ]}
+];
+
+const answers = [
+  ["good","○","良好"],["warn","△","要注意"],["bad","×","不良"],["fixed","⊗","処置実施"],["na","／","該当なし"]
+];
+const frequencies = [
+  ["歯車 上","良"],["歯車 横","良"],["軸 上","良"],["軸 横","良"],
+  ["メカニカルブレーキ・非常ブレーキの状態","良"],["レールの状態","良"],["ガーダーの状態","良"],
+  ["走行減速機の状態","良"],["モーター 巻上下","良"],["モーター 横行","良"],["モーター 走行","良"]
+];
+const annualMeasurements = [
+  ["絶縁抵抗", [["巻上下","100","MΩ"],["横行","100","MΩ"],["走行","100","MΩ"],["電源・操作","100","MΩ"]]],
+  ["無負荷電流・寸法", [["無負荷電流 巻上下","22.6","A"],["無負荷電流 横行","3.5","A"],["無負荷電流 走行","3.4","A"],["定格荷重の表示","10","t"],["タワミ","7","mm"],["タワミ基準（スパン比）","1/2357","以下"],["スパン","16500","mm"],["横行レールゲージ","44","mm"]]]
+];
+const forkliftCategories = ["制動・操縦装置","荷役・油圧装置","車輪の異常","照明・警報装置"];
+const forkliftStatuses = [["","未入力"],["good","○ 良好"],["warn","△ 要注意"],["bad","× 不良"],["na","／ 対象外"]];
+const forkliftDailyKey = "forklift-daily-demo-v2";
+const forkliftMonthlyKey = "forklift-monthly-demo-v2";
+const craneInventory = [
+  ["第1工場","1-天6","10","776","令和7年8月14日"],
+  ["第1工場","1-天5","10","615","令和8年4月17日"],
+  ["第1工場","1-天4","10","950","令和8年4月17日"],
+  ["第1工場","1-天3","10","614","令和8年4月17日"],
+  ["第1工場","1-天2","10","949","令和8年4月17日"],
+  ["第1工場","1-天1","10","1106","令和7年9月23日"],
+  ["第1工場","1-門3","5","733","令和7年5月2日"],
+  ["第1工場","1-門2","5","781","令和7年6月18日"],
+  ["第1工場","1-門1","4.8","780","令和7年6月18日"],
+  ["第2工場","2-天6","10","669","令和10年4月17日"],
+  ["第2工場","2-天5","10","775","令和7年8月14日"],
+  ["第2工場","2-天4","10","1161","令和6年10月30日"],
+  ["第2工場","2-天3","10","777","令和7年8月14日"],
+  ["第2工場","2-天2","10","1110","令和7年8月8日"],
+  ["第2工場","2-天1","10","1109","令和7年8月8日"],
+  ["第2工場","2-門4","5","783","令和5年6月18日"],
+  ["第2工場","2-門3","5","782","令和5年6月18日"],
+  ["第2工場","2-門2","5","899","令和8年4月22日"],
+  ["第2工場","2-門1","4.8","1107","令和7年10月6日"],
+  ["第3工場","3-天5","5","778","令和5年6月18日"],
+  ["第3工場","3-天4","10","1051","令和5年5月7日"],
+  ["第3工場","3-天3","10","1050","令和5年5月7日"],
+  ["第3工場","3-天2","5","952","令和8年4月17日"],
+  ["第3工場","3-天1","5","951","令和8年4月17日"],
+  ["第3工場","3-門3","4.8","1194","令和8年1月29日"],
+  ["第3工場","3-門2","4.8","1193","令和8年1月29日"],
+  ["第3工場","3-門1","4.8","1108","令和7年10月6日"],
+  ["第4工場","4-天3","5","1159","令和6年10月23日"],
+  ["第4工場","4-天2","5","1160","令和6年10月23日"],
+  ["第4工場","4-天1","5","1114","令和7年8月8日"],
+  ["第4工場","4-門4","4.8","1196","令和8年1月29日"],
+  ["第4工場","4-門3","4.8","1174","令和7年9月10日"],
+  ["第4工場","4-門2","4.8","1195","令和8年1月29日"],
+  ["第4工場","4-門1","4.8","1173","令和7年9月10日"],
+  ["第5工場","5-天2","2.8","—","原票記載なし"],
+  ["第5工場","5-天1","2.8","—","原票記載なし"]
+];
+const STORAGE_KEY = "crane-inspection-demo-v2";
+const checklistRoot = document.getElementById("checklist");
+const state = { mode: "4", recordMode: "sample", status: new Map(), remarks: new Map(), followUps: new Map() };
+let toastTimer;
+let modalAction = null;
+let currentModule = "home";
+const allItems = sections.flatMap(section => section.groups.flatMap(group => group[1].filter(item => item[0] !== 40)));
+const itemById = new Map(allItems.map(item => [item[0], item]));
+allItems.forEach(([number]) => state.status.set(number, "good"));
+state.status.set(24, "na");
+state.status.set(25, "na");
+state.status.set(49, "na");
+const sampleStatuses = new Map(state.status);
+
+function element(tag, className, text) {
+  const node = document.createElement(tag);
+  if (className) node.className = className;
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function showToast(message, isError) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.toggle("error", Boolean(isError));
+  toast.classList.add("visible");
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => toast.classList.remove("visible"), 3200);
+}
+
+function buildFrequencyOptions() {
+  const fieldset = document.getElementById("inspectionMode");
+  [["1","① A"],["2","② A・B"],["3","③ A・B・C"],["4","④ A・B・C・年次点検"]].forEach(([value,label]) => {
+    const wrapper = element("label");
+    wrapper.style.cssText = "display:flex;align-items:center;gap:5px;padding:6px 9px;border:1px solid #e1e6e3;border-radius:7px;background:#fbfcfa;font-size:10px;cursor:pointer";
+    const radio = document.createElement("input");
+    radio.type = "radio"; radio.name = "mode"; radio.value = value; radio.checked = value === state.mode;
+    radio.addEventListener("change", () => { state.mode = value; updateView(); });
+    wrapper.append(radio, document.createTextNode(label));
+    fieldset.append(wrapper);
+  });
+}
+
+function buildChecklist() {
+  sections.forEach((section, index) => {
+    const sectionNode = element("section", "section-card");
+    sectionNode.id = `section-${section.id}`;
+    sectionNode.dataset.sectionId = section.id;
+    const heading = element("div", "section-head");
+    heading.append(element("span", "section-index", String(index + 1)));
+    heading.append(element("h2", "section-title", section.title));
+    const count = section.groups.reduce((total, group) => total + group[1].filter(item => item[0] !== 40).length, 0);
+    heading.append(element("span", "section-count", `${count}項目`));
+    sectionNode.append(heading);
+
+    section.groups.forEach(([groupTitle, items]) => {
+      const groupNode = element("div", "check-group");
+      groupNode.append(element("div", "group-title", groupTitle));
+      items.forEach(([number, label, frequency]) => {
+        if (number === 40) {
+          const blankRow = element("div", "not-applicable-row");
+          blankRow.dataset.placeholder = "true";
+          blankRow.dataset.search = "40";
+          blankRow.append(element("span", "check-no", "40"));
+          blankRow.append(element("span", "", "原票の空欄（点検項目なし）"));
+          groupNode.append(blankRow);
+          return;
+        }
+        const row = element("div", "check-row");
+        row.dataset.item = String(number);
+        row.dataset.frequency = frequency;
+        row.dataset.search = `${number} ${label}`.toLocaleLowerCase("ja");
+        const numberNode = element("span", "check-no", String(number));
+        const copy = element("div", "check-copy");
+        copy.append(element("span", "check-label", label));
+        copy.append(element("span", `class-pill class-${frequency}`, frequency));
+        const controls = element("div", "row-controls");
+        answers.forEach(([value,symbol,name]) => {
+          const button = element("button", "status-button", symbol);
+          button.type = "button"; button.dataset.value = value; button.setAttribute("aria-label", `${number} ${name}`);
+          button.setAttribute("aria-pressed", "false"); button.title = name;
+          button.addEventListener("click", () => {
+            state.status.set(number, value);
+            updateView();
+          });
+          controls.append(button);
+        });
+        const clear = element("button", "clear-status", "解除");
+        clear.type = "button"; clear.setAttribute("aria-label", `${number} の判定を解除`);
+        clear.addEventListener("click", () => { state.status.set(number, ""); updateView(); });
+        controls.append(clear);
+        row.append(numberNode, copy, controls);
+        groupNode.append(row);
+      });
+      sectionNode.append(groupNode);
+    });
+    checklistRoot.append(sectionNode);
+  });
+}
+
+function buildFollowupEditor(number,row) {
+  const saved = state.followUps.get(number) || { owner:"", due:"", action:"", progress:"open" };
+  const editor = element("div","followup-editor");
+  editor.dataset.followupFor = String(number);
+  const addField = (labelText,control,required) => {
+    const label = element("label");
+    const caption = element("span");
+    caption.append(document.createTextNode(labelText));
+    if (required) caption.append(element("span","followup-required","必須"));
+    label.append(caption,control);
+    editor.append(label);
+    return control;
+  };
+  const action = document.createElement("input");
+  action.type = "text"; action.className = "followup-action"; action.value = saved.action;
+  action.placeholder = "必要な処置・対応内容";
+  addField("処置・対応内容",action,false);
+  const owner = document.createElement("input");
+  owner.type = "text"; owner.value = saved.owner; owner.placeholder = "担当者";
+  addField("担当者",owner,true);
+  const due = document.createElement("input");
+  due.type = "date"; due.value = saved.due;
+  addField("対応期限",due,true);
+  const progress = document.createElement("select");
+  [["open","未対応"],["in-progress","対応中"],["done","完了"]].forEach(([value,label]) => {
+    const option = document.createElement("option");
+    option.value = value; option.textContent = label; progress.append(option);
+  });
+  progress.value = saved.progress;
+  addField("フォロー状況",progress,false);
+  const store = () => {
+    state.followUps.set(number,{action:action.value,owner:owner.value,due:due.value,progress:progress.value});
+    updateResults(includedItems().reduce((set,[itemNumber]) => set.add(itemNumber),new Set()));
+  };
+  [action,owner,due,progress].forEach(control => {
+    control.addEventListener("input",store);
+    control.addEventListener("change",store);
+  });
+  row.append(editor);
+  return editor;
+}
+
+function buildAnnualFields() {
+  const grid = document.getElementById("annualGrid");
+  annualMeasurements.forEach(([heading, fields]) => {
+    grid.append(element("div", "annual-group", heading));
+    fields.forEach(([label,value,unit],index) => {
+      const wrapper = element("div", "annual-field");
+      const inputId = `measurement-${index}-${label.replace(/\W/g,"")}`;
+      const caption = element("label", "", label);
+      caption.htmlFor = inputId;
+      const inputWrap = element("div", "annual-input-wrap");
+      const input = document.createElement("input");
+      input.id = inputId; input.type = "text"; input.inputMode = "decimal"; input.value = value;
+      input.dataset.annual = label; input.setAttribute("aria-label", label);
+      inputWrap.append(input, element("span", "annual-unit", unit));
+      wrapper.append(caption, inputWrap);
+      grid.append(wrapper);
+    });
+  });
+  grid.append(element("div", "annual-group", "ホイスト関係・クレーン・モーター"));
+  frequencies.forEach(([label,value],index) => {
+    const wrapper = element("div", "annual-field");
+    const inputId = `annual-result-${index}`;
+    const caption = element("label", "", label);
+    caption.htmlFor = inputId;
+    const select = document.createElement("select");
+    select.id = inputId; select.dataset.annualResult = label;
+    [["良","良"],["否","否"],["未入力","未入力"]].forEach(([optionValue,optionText]) => {
+      const option = document.createElement("option");
+      option.value = optionValue; option.textContent = optionText; select.append(option);
+    });
+    select.value = value;
+    wrapper.append(caption, select); grid.append(wrapper);
+  });
+}
+
+function buildForkliftRows(kind) {
+  const target = document.getElementById(kind === "daily" ? "forkliftDailyRows" : "forkliftMonthlyRows");
+  const count = kind === "daily" ? 31 : 12;
+  for (let period = 1; period <= count; period++) {
+    const row = document.createElement("tr");
+    row.dataset.forkliftPeriod = String(period);
+    const periodCell = element("td",kind === "daily" ? "day-number" : "month-cell",String(period) + (kind === "daily" ? "日" : "月"));
+    row.append(periodCell);
+    if (kind === "monthly") {
+      const dateCell = document.createElement("td");
+      const dayInput = document.createElement("input");
+      dayInput.type = "number";
+      dayInput.min = "1";
+      dayInput.max = String(new Date(Number(document.getElementById("forkliftYear").value),period,0).getDate());
+      dayInput.step = "1";
+      dayInput.placeholder = "日";
+      dayInput.inputMode = "numeric";
+      dayInput.dataset.forkliftDate = "monthly";
+      dayInput.dataset.period = String(period);
+      dayInput.setAttribute("aria-label",`${period}月の点検日`);
+      dayInput.addEventListener("input",updateForkliftSummary);
+      dateCell.append(dayInput);
+      row.append(dateCell);
+    }
+    forkliftCategories.forEach(category => {
+      const cell = document.createElement("td");
+      const select = document.createElement("select");
+      select.dataset.forkliftKind = kind;
+      select.dataset.period = String(period);
+      select.dataset.category = category;
+      select.setAttribute("aria-label",`${period}${kind === "daily" ? "日" : "月"} ${category}`);
+      forkliftStatuses.forEach(([value,label]) => {
+        const option = document.createElement("option");
+        option.value = value; option.textContent = label; select.append(option);
+      });
+      select.addEventListener("change",updateForkliftSummary);
+      cell.append(select); row.append(cell);
+    });
+    const noteCell = document.createElement("td");
+    const note = document.createElement("input");
+    note.type = "text"; note.dataset.forkliftNote = kind; note.dataset.period = String(period);
+    note.setAttribute("aria-label",`${period}${kind === "daily" ? "日" : "月"} 備考`);
+    noteCell.append(note); row.append(noteCell);
+    target.append(row);
+  }
+}
+
+function buildForkliftModule() {
+  const monthSelect = document.getElementById("forkliftMonth");
+  for (let month = 1; month <= 12; month++) {
+    const option = document.createElement("option");
+    option.value = String(month); option.textContent = `${month}月`;
+    monthSelect.append(option);
+  }
+  monthSelect.value = "7";
+  buildForkliftRows("daily");
+  buildForkliftRows("monthly");
+  updateForkliftDays();
+  updateForkliftSummary();
+}
+
+function updateForkliftDays() {
+  const year = Number(document.getElementById("forkliftYear").value);
+  const month = Number(document.getElementById("forkliftMonth").value);
+  const daysInMonth = year > 0 && month > 0 ? new Date(year,month,0).getDate() : 31;
+  document.querySelectorAll('[data-forklift-date="monthly"]').forEach(input => {
+    const rowMonth = Number(input.dataset.period);
+    input.max = String(year > 0 ? new Date(year,rowMonth,0).getDate() : 31);
+  });
+  document.querySelectorAll("#forkliftDailyRows tr").forEach(row => {
+    const day = Number(row.dataset.forkliftPeriod);
+    const disabled = day > daysInMonth;
+    row.style.opacity = disabled ? ".4" : "1";
+    row.querySelectorAll("select,input").forEach(control => { control.disabled = disabled; });
+  });
+}
+
+function updateForkliftSummary() {
+  const activePanel = document.getElementById("dailyPanel").hidden ? "monthly" : "daily";
+  const controls = Array.from(document.querySelectorAll(`[data-forklift-kind="${activePanel}"]`)).filter(control => !control.disabled);
+  const complete = controls.filter(control => control.value !== "").length;
+  const issues = controls.filter(control => ["warn","bad"].includes(control.value)).length;
+  const statusText = `${activePanel === "daily" ? "日常" : "月例"}点検 · ${complete}/${controls.length} 入力済み · 要確認 ${issues}件`;
+  const inspector = activePanel === "daily" ? document.getElementById("forkliftDailyInspector") : document.getElementById("forkliftMonthlyInspector");
+  document.getElementById("sideCraneNo").textContent = document.getElementById("forkliftId").value || "FL";
+  document.getElementById("sideLocation").textContent = statusText;
+  inspector.closest(".field").hidden = false;
+  document.getElementById(activePanel === "daily" ? "forkliftMonthlyInspectorField" : "forkliftDailyInspectorField").hidden = true;
+}
+
+function collectForkliftDraft(kind) {
+  const values = {};
+  document.querySelectorAll(`[data-forklift-kind="${kind}"],[data-forklift-note="${kind}"],[data-forklift-date="${kind}"]`).forEach(control => {
+    const key = `${control.dataset.period}|${control.dataset.category || (control.dataset.forkliftDate ? "date" : "note")}`;
+    values[key] = control.value;
+  });
+  return values;
+}
+
+function applyForkliftDraft(kind,values) {
+  if (!values || typeof values !== "object" || Array.isArray(values)) throw new Error("フォークリフトの保存データ形式が正しくありません。");
+  document.querySelectorAll(`[data-forklift-kind="${kind}"],[data-forklift-note="${kind}"],[data-forklift-date="${kind}"]`).forEach(control => {
+    const key = `${control.dataset.period}|${control.dataset.category || (control.dataset.forkliftDate ? "date" : "note")}`;
+    if (typeof values[key] === "string") control.value = values[key];
+  });
+  updateForkliftSummary();
+}
+
+function setForkliftTab(kind) {
+  const daily = kind === "daily";
+  document.getElementById("dailyPanel").hidden = !daily;
+  document.getElementById("monthlyPanel").hidden = daily;
+  document.getElementById("dailyTab").setAttribute("aria-selected",String(daily));
+  document.getElementById("monthlyTab").setAttribute("aria-selected",String(!daily));
+  document.getElementById("forkliftMonthField").hidden = !daily;
+  document.getElementById("forkliftYear").closest(".field").querySelector("label").textContent = daily ? "点検年" : "対象年";
+  document.getElementById("forkliftDailyInspectorField").hidden = !daily;
+  document.getElementById("forkliftMonthlyInspectorField").hidden = daily;
+  updateForkliftSummary();
+}
+
+function renderInventory() {
+  const query = document.getElementById("inventorySearch").value.trim().toLocaleLowerCase("ja");
+  const plant = document.getElementById("plantFilter").value;
+  const filtered = craneInventory.filter(([factory,number,capacity,certificate,expiry]) =>
+    (!plant || plant === factory) && (!query || `${factory} ${number} ${capacity} ${certificate} ${expiry}`.toLocaleLowerCase("ja").includes(query))
+  );
+  const tbody = document.getElementById("inventoryRows");
+  tbody.replaceChildren();
+  if (!filtered.length) {
+    const row = document.createElement("tr");
+    const cell = element("td","table-empty","検索条件に一致する設備はありません。");
+    cell.colSpan = 6; row.append(cell); tbody.append(row);
+    return;
+  }
+  filtered.forEach(([factory,number,capacity,certificate,expiry]) => {
+    const row = document.createElement("tr");
+    row.append(element("td","plant-cell",factory),element("td","",number));
+    const capacityCell = document.createElement("td");
+    capacityCell.append(element("span","capacity-pill",`${capacity}t`));
+    row.append(capacityCell,element("td","",certificate));
+    const expiryCell = element("td",expiry === "原票記載なし" ? "expiry-soon" : "",expiry);
+    row.append(expiryCell);
+    const actionCell = document.createElement("td");
+    const open = element("button","button","点検を開く");
+    open.type = "button"; open.addEventListener("click",() => openCraneFromInventory(factory,number,capacity,certificate,expiry));
+    actionCell.append(open); row.append(actionCell);
+    tbody.append(row);
+  });
+}
+
+function openCraneFromInventory(factory,number,capacity,certificate,expiry) {
+  document.getElementById("location").value = factory;
+  document.getElementById("craneNo").value = number;
+  document.getElementById("certificateNo").value = certificate;
+  document.getElementById("craneType").value = `${capacity}t クレーン`;
+  const date = expiry.match(/^令和(\d+)年(\d+)月(\d+)日$/);
+  if (date) {
+    const [,year,month,day] = date;
+    document.getElementById("expiryDate").value = `${Number(year)+2018}-${String(month).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
+  } else {
+    document.getElementById("expiryDate").value = "";
+  }
+  updateSidebarDevice();
+  setModule("crane");
+  showToast(`${factory} ${number} を点検対象に選びました。期限は原票記載を表示しています。`);
+}
+
+function setModule(name,updateHash) {
+  const moduleIds = { home:"dashboardHome", crane:"craneModule", forklift:"forkliftModule", inventory:"inventoryModule" };
+  if (!moduleIds[name]) throw new Error(`不明な点検メニュー: ${name}`);
+  currentModule = name;
+  Object.entries(moduleIds).forEach(([key,id]) => { document.getElementById(id).hidden = key !== name; });
+  document.querySelectorAll("#moduleNav a").forEach(link => link.classList.toggle("active",link.dataset.module === name));
+  const titles = { home:"ホーム", crane:"クレーン月例点検", forklift:"フォークリフト点検", inventory:"クレーン設備台帳" };
+  document.getElementById("crumbTitle").textContent = titles[name];
+  document.querySelectorAll("[data-top-action]").forEach(button => {
+    button.hidden = name === "home" || (name === "inventory" && button.id !== "printButton");
+  });
+  if (updateHash !== false && location.hash !== `#${moduleIds[name]}`) history.pushState(null,"",`#${moduleIds[name]}`);
+  if (name === "crane") updateSidebarDevice();
+  else if (name === "forklift") updateForkliftSummary();
+  else if (name === "inventory") {
+    document.getElementById("sideCraneNo").textContent = `${craneInventory.length}台`;
+    document.getElementById("sideLocation").textContent = "工場別クレーン設備台帳";
+  } else {
+    document.getElementById("sideCraneNo").textContent = "点検ポータル";
+    document.getElementById("sideLocation").textContent = "3つの点検・設備メニュー";
+  }
+  window.scrollTo({top:0,behavior:"auto"});
+}
+
+function includedItems() {
+  const allowed = { "1":["A"], "2":["A","B"], "3":["A","B","C"], "4":["A","B","C"] }[state.mode];
+  return allItems.filter(([, , frequency]) => allowed.includes(frequency));
+}
+
+function updateView() {
+  const activeItems = includedItems();
+  const activeNumbers = new Set(activeItems.map(([number]) => number));
+  let complete = 0;
+  let issues = 0;
+  let unanswered = 0;
+  activeItems.forEach(([number]) => {
+    const status = state.status.get(number) || "";
+    if (status) complete++;
+    else unanswered++;
+    if (["warn","bad","fixed"].includes(status)) issues++;
+  });
+  const percent = activeItems.length ? Math.round(complete / activeItems.length * 100) : 0;
+  document.getElementById("progressText").textContent = `${complete} / ${activeItems.length}項目`;
+  document.getElementById("progressPercent").innerHTML = `${percent}<small>% 完了</small>`;
+  document.getElementById("progressFill").style.width = `${percent}%`;
+  const progressBar = document.getElementById("progressBar");
+  progressBar.setAttribute("aria-valuenow", String(percent));
+  document.getElementById("totalCount").textContent = String(activeItems.length);
+  document.getElementById("issueCount").textContent = String(issues);
+  document.getElementById("unansweredCount").textContent = String(unanswered);
+  const annualSection = document.getElementById("annualSection");
+  annualSection.style.opacity = state.mode === "4" ? "1" : ".48";
+  annualSection.setAttribute("aria-disabled", String(state.mode !== "4"));
+  annualSection.querySelectorAll("input,select").forEach(input => { input.disabled = state.mode !== "4"; });
+
+  const query = document.getElementById("searchInput").value.trim().toLocaleLowerCase("ja");
+  const filter = document.getElementById("filterSelect").value;
+  let shown = 0;
+  document.querySelectorAll(".check-row").forEach(row => {
+    const number = Number(row.dataset.item);
+    const status = state.status.get(number) || "";
+    const inMode = activeNumbers.has(number);
+    const matchesSearch = !query || row.dataset.search.includes(query);
+    const matchesFilter = filter === "all" || (filter === "issues" ? ["warn","bad","fixed"].includes(status) : !status);
+    row.hidden = !(inMode && matchesSearch && matchesFilter);
+    row.classList.toggle("status-warn", status === "warn");
+    row.classList.toggle("status-bad", status === "bad");
+    row.classList.toggle("status-fixed", status === "fixed");
+    row.querySelectorAll(".status-button").forEach(button => {
+      button.setAttribute("aria-pressed", String(button.dataset.value === status));
+      button.disabled = !inMode;
+    });
+    row.querySelector(".clear-status").hidden = !status;
+    let remark = row.querySelector(".remark-input");
+    if (["warn","bad","fixed"].includes(status) && !remark) {
+      remark = document.createElement("input");
+      remark.type = "text"; remark.className = "remark-input";
+      remark.placeholder = "所見・処置内容を入力";
+      remark.setAttribute("aria-label", `${number} 所見・処置内容`);
+      remark.value = state.remarks.get(number) || "";
+      remark.addEventListener("input", () => state.remarks.set(number, remark.value));
+      row.append(remark);
+    } else if (!["warn","bad","fixed"].includes(status) && remark) {
+      state.remarks.set(number, remark.value);
+      remark.remove();
+    } else if (remark) {
+      remark.value = state.remarks.get(number) || "";
+    }
+    let followupEditor = row.querySelector(".followup-editor");
+    if (["warn","bad","fixed"].includes(status) && !followupEditor) {
+      buildFollowupEditor(number,row);
+    } else if (!["warn","bad","fixed"].includes(status) && followupEditor) {
+      followupEditor.remove();
+    } else if (followupEditor) {
+      const values = state.followUps.get(number);
+      if (values) {
+        followupEditor.querySelector(".followup-action").value = values.action;
+        followupEditor.querySelector('label:nth-child(2) input').value = values.owner;
+        followupEditor.querySelector('label:nth-child(3) input').value = values.due;
+        followupEditor.querySelector('label:nth-child(4) select').value = values.progress;
+      }
+    }
+    if (!row.hidden) shown++;
+  });
+  document.querySelectorAll(".not-applicable-row").forEach(row => {
+    const matchesSearch = !query || row.dataset.search.includes(query) || "原票の空欄 点検項目なし".includes(query);
+    row.hidden = !(matchesSearch && filter === "all");
+  });
+  document.querySelectorAll(".check-group").forEach(group => {
+    const visibleChild = Array.from(group.querySelectorAll(".check-row,.not-applicable-row")).some(row => !row.hidden);
+    group.hidden = !visibleChild;
+  });
+  document.querySelectorAll(".section-card[data-section-id]").forEach(section => {
+    section.hidden = !Array.from(section.querySelectorAll(".check-group")).some(group => !group.hidden);
+  });
+  document.getElementById("emptyFilter").style.display = shown ? "none" : "block";
+  updateResults(activeNumbers);
+  updateSidebarDevice();
+}
+
+function updateResults(activeNumbers) {
+  const list = document.getElementById("resultsList");
+  list.replaceChildren();
+  const flagged = allItems.filter(([number]) => activeNumbers.has(number) && ["warn","bad","fixed"].includes(state.status.get(number)));
+  document.getElementById("resultsCount").textContent = `${flagged.length}件`;
+  document.getElementById("issueCount").classList.toggle("tone-bad", flagged.some(([number]) => state.status.get(number) === "bad"));
+  document.getElementById("issueCount").classList.toggle("tone-warn", !flagged.some(([number]) => state.status.get(number) === "bad") && flagged.some(([number]) => state.status.get(number) === "warn"));
+  if (!flagged.length) {
+    list.append(element("li", "", "要注意・不良・処置実施の項目がここに表示されます。"));
+    return;
+  }
+  flagged.forEach(([number,label]) => {
+    const status = state.status.get(number);
+    const [,symbol,name] = answers.find(([value]) => value === status);
+    const item = element("li");
+    item.append(element("span", `result-badge ${status}`, symbol));
+    const text = element("span");
+    text.append(element("strong", "", `No.${number} ${name}：`), document.createTextNode(label));
+    const note = state.remarks.get(number);
+    if (note) text.append(document.createTextNode(` — ${note}`));
+    const followup = state.followUps.get(number);
+    if (followup) {
+      const details = [followup.action,followup.owner && `担当: ${followup.owner}`,followup.due && `期限: ${followup.due}`,`状況: ${{open:"未対応","in-progress":"対応中",done:"完了"}[followup.progress] || "未対応"}`].filter(Boolean);
+      if (details.length) text.append(document.createElement("br"),document.createTextNode(details.join(" · ")));
+    }
+    item.append(text); list.append(item);
+  });
+}
+
+function applyRecordMode(mode) {
+  state.recordMode = mode;
+  state.remarks.clear();
+  state.followUps.clear();
+  document.getElementById("generalNote").value = "";
+  if (mode === "sample") {
+    state.status = new Map(sampleStatuses);
+    document.getElementById("location").value = "第1工場";
+    document.getElementById("craneNo").value = "1-天1";
+    document.getElementById("certificateNo").value = "1106";
+    document.getElementById("expiryDate").value = "2025-09-23";
+    document.getElementById("craneType").value = "10tホイスト式天井クレーン";
+    document.getElementById("inspectionDate").value = "2025-07-01";
+    document.getElementById("recordDate").value = "2025-07-01";
+    document.getElementById("inspector").value = "酒井";
+    document.getElementById("inspectorSeal").value = "酒井";
+    document.querySelectorAll("[data-annual]").forEach(input => { input.value = ""; });
+    annualMeasurements.flatMap(([,fields]) => fields).forEach(([label,value]) => {
+      const field = document.querySelector(`[data-annual="${CSS.escape(label)}"]`);
+      if (field) field.value = value;
+    });
+    document.querySelectorAll("[data-annual-result]").forEach(select => { select.value = "良"; });
+    state.mode = "4";
+    document.querySelectorAll('[name="mode"]').forEach(input => { input.checked = input.value === "4"; });
+  } else {
+    allItems.forEach(([number]) => state.status.set(number,""));
+    document.querySelectorAll("[data-annual]").forEach(input => { input.value = ""; });
+    document.querySelectorAll("[data-annual-result]").forEach(select => { select.value = "未入力"; });
+    const today = new Date();
+    const todayString = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,"0")}-${String(today.getDate()).padStart(2,"0")}`;
+    document.getElementById("inspectionDate").value = todayString;
+    document.getElementById("recordDate").value = todayString;
+    document.getElementById("inspector").value = "";
+    document.getElementById("inspectorSeal").value = "";
+    state.mode = "1";
+    document.querySelectorAll('[name="mode"]').forEach(input => { input.checked = input.value === "1"; });
+  }
+  document.getElementById("filterSelect").value = "all";
+  document.getElementById("searchInput").value = "";
+  updateView();
+  updateSidebarDevice();
+}
+
+function updateSidebarDevice() {
+  if (currentModule !== "crane") return;
+  document.getElementById("sideCraneNo").textContent = document.getElementById("craneNo").value || "未設定";
+  document.getElementById("sideLocation").textContent = `${document.getElementById("location").value || "場所未設定"} ・ クレーン`;
+  document.getElementById("sealText").textContent = document.getElementById("inspectorSeal").value.trim().slice(0,3) || "印";
+}
+
+function getFormState() {
+  const fields = {};
+  ["location","craneNo","certificateNo","expiryDate","craneType","hoistModel","inspectionDate","inspector","generalNote","recordDate","inspectorSeal"].forEach(id => {
+    fields[id] = document.getElementById(id).value;
+  });
+  const measurements = Array.from(document.querySelectorAll("[data-annual]"), input => [input.dataset.annual,input.value]);
+  const results = Array.from(document.querySelectorAll("[data-annual-result]"), input => [input.dataset.annualResult,input.value]);
+  return {
+    version: 3, fields, mode: state.mode, recordMode: state.recordMode, status: Array.from(state.status),
+    remarks: Array.from(state.remarks), followUps: Array.from(state.followUps), measurements, results
+  };
+}
+
+function applyFormState(saved) {
+  if (!saved || ![2,3].includes(saved.version) || !saved.fields || !Array.isArray(saved.status)) {
+    throw new Error("保存データの形式が正しくありません。");
+  }
+  Object.entries(saved.fields).forEach(([id,value]) => {
+    const input = document.getElementById(id);
+    if (input && typeof value === "string") input.value = value;
+  });
+  if (["1","2","3","4"].includes(saved.mode)) state.mode = saved.mode;
+  state.status = new Map(allItems.map(([number]) => [number,""]));
+  saved.status.forEach(entry => {
+    if (Array.isArray(entry) && itemById.has(Number(entry[0])) && ["","good","warn","bad","fixed","na"].includes(entry[1])) {
+      state.status.set(Number(entry[0]),entry[1]);
+    }
+  });
+  state.remarks = new Map();
+  if (Array.isArray(saved.remarks)) saved.remarks.forEach(entry => {
+    if (Array.isArray(entry) && itemById.has(Number(entry[0])) && typeof entry[1] === "string") state.remarks.set(Number(entry[0]),entry[1]);
+  });
+  state.recordMode = saved.recordMode === "new" ? "new" : "sample";
+  state.followUps = new Map();
+  if (Array.isArray(saved.followUps)) saved.followUps.forEach(entry => {
+    if (Array.isArray(entry) && itemById.has(Number(entry[0])) && entry[1] && typeof entry[1] === "object") {
+      const value = entry[1];
+      state.followUps.set(Number(entry[0]),{
+        action:typeof value.action === "string" ? value.action : "",
+        owner:typeof value.owner === "string" ? value.owner : "",
+        due:typeof value.due === "string" ? value.due : "",
+        progress:["open","in-progress","done"].includes(value.progress) ? value.progress : "open"
+      });
+    }
+  });
+  const measurements = new Map(Array.isArray(saved.measurements) ? saved.measurements : []);
+  document.querySelectorAll("[data-annual]").forEach(input => {
+    if (measurements.has(input.dataset.annual) && typeof measurements.get(input.dataset.annual) === "string") input.value = measurements.get(input.dataset.annual);
+  });
+  const results = new Map(Array.isArray(saved.results) ? saved.results : []);
+  document.querySelectorAll("[data-annual-result]").forEach(input => {
+    if (["良","否","未入力"].includes(results.get(input.dataset.annualResult))) input.value = results.get(input.dataset.annualResult);
+  });
+  document.querySelectorAll('[name="mode"]').forEach(input => { input.checked = input.value === state.mode; });
+  updateView();
+}
+
+function saveDraft() {
+  try {
+    window.localStorage.setItem(STORAGE_KEY,JSON.stringify(getFormState()));
+    showToast("このブラウザーに下書きを保存しました。サーバー送信は行っていません。");
+  } catch (error) {
+    showToast(`下書きを保存できませんでした: ${error.message || "ブラウザーの保存領域を利用できません。"}`,true);
+  }
+}
+
+function saveForkliftDraft(kind) {
+  const key = kind === "daily" ? forkliftDailyKey : forkliftMonthlyKey;
+  const draft = {
+    year: document.getElementById("forkliftYear").value,
+    month: document.getElementById("forkliftMonth").value,
+    inspector: document.getElementById(kind === "daily" ? "forkliftDailyInspector" : "forkliftMonthlyInspector").value,
+    forkliftId: document.getElementById("forkliftId").value,
+    values: collectForkliftDraft(kind)
+  };
+  try {
+    window.localStorage.setItem(key,JSON.stringify(draft));
+    showToast(`${kind === "daily" ? "日常" : "月例"}点検の下書きをこのブラウザーに保存しました。`);
+  } catch (error) {
+    showToast(`フォークリフトの下書きを保存できませんでした: ${error.message || "ブラウザーの保存領域を利用できません。"}`,true);
+  }
+}
+
+function saveCurrentDraft() {
+  if (currentModule === "crane") saveDraft();
+  else if (currentModule === "forklift") saveForkliftDraft(document.getElementById("dailyPanel").hidden ? "monthly" : "daily");
+}
+
+function openPrintPreview() {
+  const body = element("div");
+  const summary = element("div","print-summary");
+  let title = "印刷内容を確認";
+  let text = "このあとブラウザーの印刷プレビューが開きます。PDF保存も選択できます。";
+  if (currentModule === "crane") {
+    title = state.recordMode === "sample" ? "クレーン記入例の印刷" : "クレーン点検記録の印刷";
+    summary.append(
+      makePrintSummaryItem("設備",`${document.getElementById("location").value} / ${document.getElementById("craneNo").value}`),
+      makePrintSummaryItem("点検日",document.getElementById("inspectionDate").value || "未入力"),
+      makePrintSummaryItem("点検者",document.getElementById("inspector").value || "未入力"),
+      makePrintSummaryItem("入力状況",document.getElementById("progressText").textContent)
+    );
+    body.append(summary);
+    const activeNumbers = new Set(includedItems().map(([number]) => number));
+    const flagged = allItems.filter(([number]) => activeNumbers.has(number) && ["warn","bad","fixed"].includes(state.status.get(number)));
+    if (flagged.length) {
+      body.append(element("p","",`要確認項目: ${flagged.length}件`));
+      const list = element("ul","preview-issues");
+      flagged.forEach(([number,label]) => {
+        const followup = state.followUps.get(number);
+        const detail = followup && (followup.owner || followup.due) ? ` (${followup.owner || "担当未設定"} / ${followup.due || "期限未設定"})` : "";
+        list.append(element("li","",`No.${number} ${label}${detail}`));
+      });
+      body.append(list);
+    }
+    if (state.recordMode === "sample") {
+      const warning = element("p","preview-warning","記入例の印刷です。実際の検査記録として提出・使用しないでください。");
+      body.append(warning);
+    }
+  } else if (currentModule === "forklift") {
+    const kind = document.getElementById("dailyPanel").hidden ? "monthly" : "daily";
+    title = kind === "monthly" ? "フォークリフト月例点検の印刷" : "フォークリフト日常点検の印刷";
+    summary.append(
+      makePrintSummaryItem("点検種別",kind === "monthly" ? "月例点検（月ごと）" : "日常点検（日ごと）"),
+      makePrintSummaryItem("対象年",document.getElementById("forkliftYear").value || "未入力"),
+      makePrintSummaryItem("対象月",kind === "daily" ? document.getElementById("forkliftMonth").selectedOptions[0].textContent : "1月〜12月"),
+      makePrintSummaryItem("点検者",document.getElementById(kind === "daily" ? "forkliftDailyInspector" : "forkliftMonthlyInspector").value || "未入力")
+    );
+    body.append(summary);
+  } else if (currentModule === "inventory") {
+    summary.append(
+      makePrintSummaryItem("一覧",document.getElementById("plantFilter").value || "全工場"),
+      makePrintSummaryItem("表示設備",`${Array.from(document.getElementById("inventoryRows").querySelectorAll("tr")).filter(row => !row.querySelector(".table-empty")).length}台`),
+      makePrintSummaryItem("参照元","配置図Excel 2025.4")
+    );
+    body.append(summary);
+    body.append(element("p","preview-warning","配置図Excelは複数時点のシートを含みます。正式台帳として使う前に原本との照合が必要です。"));
+  }
+  openModal(title,text,body,"印刷プレビューを開く",() => {
+    closeModal();
+    window.setTimeout(() => window.print(),120);
+  });
+}
+
+function makePrintSummaryItem(label,value) {
+  const item = element("div");
+  item.append(element("strong","",label),document.createTextNode(value || "未入力"));
+  return item;
+}
+
+function validateForkliftBeforeRegister() {
+  const kind = document.getElementById("dailyPanel").hidden ? "monthly" : "daily";
+  const controls = Array.from(document.querySelectorAll(`[data-forklift-kind="${kind}"]`)).filter(control => !control.disabled);
+  const incomplete = controls.filter(control => control.value === "");
+  const flagged = controls.filter(control => ["warn","bad"].includes(control.value));
+  const missingDates = kind === "monthly" ? Array.from(document.querySelectorAll('[data-forklift-date="monthly"]')).filter(input => {
+    const day = Number(input.value);
+    const month = Number(input.dataset.period);
+    const year = Number(document.getElementById("forkliftYear").value);
+    return !Number.isInteger(year) || year < 2000 || year > 2100 ||
+      !Number.isInteger(day) || day < 1 || day > new Date(year,month,0).getDate();
+  }) : [];
+  const body = element("div");
+  body.style.cssText = "display:grid;gap:6px;margin-top:12px";
+  body.append(element("div","",`入力済み：${controls.length-incomplete.length} / ${controls.length} 区分`));
+  if (kind === "monthly") body.append(element("div","",`点検日未入力・不正：${missingDates.length}か月`));
+  body.append(element("div","",`要確認：${flagged.length} 区分`));
+  const hasIncomplete = incomplete.length > 0 || missingDates.length > 0;
+  body.append(element("p","",hasIncomplete ? (kind === "monthly" ? "点検日または点検結果に未入力があります。月ごとの記録を確認してください。" : "未入力があります。日ごとの記録を確認してください。") : "画面上の確認用です。データはサーバーに登録されません。"));
+  openModal("フォークリフト点検の確認","点検記録の入力状況をご確認ください。",body,hasIncomplete ? "未入力へ移動" : "デモ登録を確認",() => {
+    closeModal();
+    if (hasIncomplete) {
+      const firstDate = missingDates[0];
+      if (firstDate) {
+        firstDate.focus();
+        firstDate.scrollIntoView({behavior:"smooth",block:"center"});
+        return;
+      }
+      const first = incomplete[0];
+      const row = document.querySelector(`[data-forklift-kind="${kind}"][data-period="${first.dataset.period}"][data-category="${CSS.escape(first.dataset.category)}"]`);
+      row?.focus();
+      row?.scrollIntoView({behavior:"smooth",block:"center"});
+      return;
+    }
+    showToast("確認しました。デモのため、記録はサーバーに登録されていません。");
+  });
+}
+
+function loadForkliftDraft(kind) {
+  const key = kind === "daily" ? forkliftDailyKey : forkliftMonthlyKey;
+  try {
+    const serialized = window.localStorage.getItem(key);
+    if (!serialized) return;
+    const saved = JSON.parse(serialized);
+    if (!saved || typeof saved !== "object" || !saved.values || typeof saved.values !== "object") {
+      throw new Error("保存データの形式が正しくありません。");
+    }
+    if (typeof saved.year === "string" && /^\d{4}$/.test(saved.year)) document.getElementById("forkliftYear").value = saved.year;
+    if (typeof saved.month === "string" && Number(saved.month) >= 1 && Number(saved.month) <= 12) document.getElementById("forkliftMonth").value = saved.month;
+    if (typeof saved.inspector === "string") document.getElementById(kind === "daily" ? "forkliftDailyInspector" : "forkliftMonthlyInspector").value = saved.inspector;
+    if (typeof saved.forkliftId === "string") document.getElementById("forkliftId").value = saved.forkliftId;
+    applyForkliftDraft(kind,saved.values);
+    showToast(`${kind === "daily" ? "日常" : "月例"}点検の下書きを復元しました。`);
+  } catch (error) {
+    showToast(`フォークリフトの下書きを復元できませんでした: ${error.message || "保存データを読み取れません。"}`,true);
+  }
+}
+
+function openModal(title,text,body,confirmLabel,action) {
+  document.getElementById("modalTitle").textContent = title;
+  document.getElementById("modalText").textContent = text;
+  const modalBody = document.getElementById("modalBody");
+  modalBody.replaceChildren();
+  if (body) modalBody.append(body);
+  const confirmButton = document.getElementById("modalConfirm");
+  confirmButton.textContent = confirmLabel || "確認";
+  confirmButton.hidden = !action;
+  modalAction = action || null;
+  document.getElementById("modalBackdrop").classList.add("open");
+  document.getElementById("modalCancel").focus();
+}
+
+function closeModal() {
+  document.getElementById("modalBackdrop").classList.remove("open");
+  modalAction = null;
+}
+
+function reportForModal() {
+  const activeNumbers = new Set(includedItems().map(([number]) => number));
+  const incomplete = allItems.filter(([number]) => activeNumbers.has(number) && !state.status.get(number));
+  const missingNotes = allItems.filter(([number]) => activeNumbers.has(number) && ["warn","bad","fixed"].includes(state.status.get(number)) && !state.remarks.get(number)?.trim());
+  const missingFollowUps = allItems.filter(([number]) => {
+    if (!activeNumbers.has(number) || !["warn","bad"].includes(state.status.get(number))) return false;
+    const followup = state.followUps.get(number);
+    return !followup?.owner.trim() || !followup?.due;
+  });
+  const issues = allItems.filter(([number]) => activeNumbers.has(number) && ["warn","bad","fixed"].includes(state.status.get(number)));
+  const body = element("div");
+  body.style.cssText = "display:grid;gap:6px;margin-top:12px";
+  body.append(element("div","",`入力済み：${includedItems().length-incomplete.length} / ${includedItems().length} 項目`));
+  body.append(element("div","",`要確認：${issues.length} 項目`));
+  body.append(element("div","",`補足記入が必要：${missingNotes.length} 項目`));
+  body.append(element("div","",`担当者・対応期限が必要：${missingFollowUps.length} 項目`));
+  if (incomplete.length || missingNotes.length || missingFollowUps.length) {
+    const warning = element("p","", "未入力や補足不足があります。内容を確認してからデモ登録してください。");
+    warning.style.color = "var(--red)";
+    body.append(warning);
+  } else {
+    body.append(element("p","","これは画面上の確認用です。記録はサーバーに送信・登録されません。"));
+  }
+  return { body, incomplete, missingNotes, missingFollowUps };
+}
+
+function validateBeforeRegister() {
+  const {body,incomplete,missingNotes,missingFollowUps} = reportForModal();
+  const canRegister = !incomplete.length && !missingNotes.length && !missingFollowUps.length;
+  openModal("点検記録の確認", "登録前の確認内容をご覧ください。", body, canRegister ? "デモ登録を確認" : "入力を確認", canRegister ? () => {
+    closeModal();
+    showToast("確認しました。デモのため、記録はサーバーに登録されていません。");
+  } : null);
+  if (!canRegister) {
+    const confirmButton = document.getElementById("modalConfirm");
+    confirmButton.hidden = false;
+    confirmButton.textContent = "未入力へ移動";
+    modalAction = () => {
+      closeModal();
+      const target = incomplete[0] || missingNotes[0] || missingFollowUps[0];
+      const row = target && document.querySelector(`.check-row[data-item="${target[0]}"]`);
+      if (row) {
+        document.getElementById("filterSelect").value = "all";
+        document.getElementById("searchInput").value = String(target[0]);
+        updateView();
+        row.scrollIntoView({behavior:"smooth",block:"center"});
+        const field = incomplete.length ? row.querySelector(".status-button") : missingNotes.length ? row.querySelector(".remark-input") : row.querySelector(".followup-editor input:not(.followup-action)");
+        window.setTimeout(() => field?.focus(),350);
+      }
+    };
+  }
+}
+
+function clearForNewInspection() {
+  const prompt = element("p","","現在の判定・所見・フォローアップ・年次測定値を消去します。設備情報は引き継ぎます。");
+  openModal("判定をリセット", "未保存の点検入力は復元できません。", prompt, "入力をリセット", () => {
+    closeModal();
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      showToast(`下書きを削除できませんでした: ${error.message || "ブラウザーの保存領域を利用できません。"}`,true);
+      return;
+    }
+    applyRecordMode("new");
+    showToast("点検判定と記録欄をリセットしました。設備情報は保持しています。");
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+}
+
+buildFrequencyOptions();
+buildChecklist();
+buildAnnualFields();
+buildForkliftModule();
+renderInventory();
+document.getElementById("inventoryCount").textContent = String(craneInventory.length);
+document.getElementById("homeCraneCount").textContent = `${craneInventory.length}台`;
+updateView();
+
+document.getElementById("searchInput").addEventListener("input",updateView);
+document.getElementById("filterSelect").addEventListener("change",updateView);
+document.getElementById("inventorySearch").addEventListener("input",renderInventory);
+document.getElementById("plantFilter").addEventListener("change",renderInventory);
+document.getElementById("forkliftYear").addEventListener("input",() => { updateForkliftDays(); updateForkliftSummary(); });
+document.getElementById("forkliftMonth").addEventListener("change",() => { updateForkliftDays(); updateForkliftSummary(); });
+document.getElementById("forkliftId").addEventListener("input",updateForkliftSummary);
+document.getElementById("dailyTab").addEventListener("click",() => setForkliftTab("daily"));
+document.getElementById("monthlyTab").addEventListener("click",() => setForkliftTab("monthly"));
+document.querySelectorAll(".summary-card[data-filter]").forEach(button => {
+  button.addEventListener("click",() => {
+    document.getElementById("filterSelect").value = button.dataset.filter;
+    document.getElementById("searchInput").value = "";
+    updateView();
+    document.querySelector(".toolbar-line").scrollIntoView({behavior:"smooth",block:"start"});
+  });
+});
+["location","craneNo","inspectorSeal"].forEach(id => document.getElementById(id).addEventListener("input",updateSidebarDevice));
+document.querySelectorAll("#moduleNav a").forEach(link => {
+  link.addEventListener("click",event => {
+    event.preventDefault();
+    setModule(link.dataset.module);
+  });
+});
+document.querySelectorAll("[data-open-module]").forEach(button => {
+  button.addEventListener("click",() => setModule(button.dataset.openModule));
+});
+window.addEventListener("popstate",() => {
+  const module = Object.entries({dashboardHome:"home",craneModule:"crane",forkliftModule:"forklift",inventoryModule:"inventory"}).find(([id]) => location.hash === `#${id}`);
+  if (module) setModule(module[1],false);
+  else setModule("home",false);
+});
+document.getElementById("saveButton").addEventListener("click",saveCurrentDraft);
+document.getElementById("printButton").addEventListener("click",openPrintPreview);
+document.getElementById("registerButton").addEventListener("click",() => {
+  if (currentModule === "crane") validateBeforeRegister();
+  else if (currentModule === "forklift") validateForkliftBeforeRegister();
+});
+document.getElementById("newInspectionButton").addEventListener("click",clearForNewInspection);
+document.getElementById("modalCancel").addEventListener("click",closeModal);
+document.getElementById("modalConfirm").addEventListener("click",() => { if (modalAction) modalAction(); else closeModal(); });
+document.getElementById("modalBackdrop").addEventListener("click",event => {
+  if (event.target === event.currentTarget) closeModal();
+});
+document.addEventListener("keydown",event => {
+  if (event.key === "Escape") closeModal();
+});
+document.querySelectorAll(".field input,.field textarea,.annual-field input,.annual-field select").forEach(input => {
+  input.addEventListener("input",updateSidebarDevice);
+});
+document.querySelectorAll(".form-fields input,.form-fields select").forEach(input => {
+  input.addEventListener("input",updateForkliftSummary);
+});
+
+try {
+  const savedDraft = window.localStorage.getItem(STORAGE_KEY);
+  if (savedDraft) {
+    applyFormState(JSON.parse(savedDraft));
+    showToast("このブラウザーの保存済み下書きを復元しました。");
+  }
+} catch (error) {
+  showToast(`保存済み下書きを復元できませんでした: ${error.message || "保存データを読み取れません。"}`,true);
+}
+loadForkliftDraft("daily");
+loadForkliftDraft("monthly");
+setForkliftTab("monthly");
+const initialModule = Object.entries({dashboardHome:"home",craneModule:"crane",forkliftModule:"forklift",inventoryModule:"inventory"}).find(([id]) => location.hash === `#${id}`);
+if (initialModule) setModule(initialModule[1],false);
+else setModule("home",false);
+
+</script>
+</body>
+</html>
