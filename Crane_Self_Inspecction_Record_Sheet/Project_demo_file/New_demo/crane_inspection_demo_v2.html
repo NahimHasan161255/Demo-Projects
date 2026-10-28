@@ -615,6 +615,13 @@ h1 { margin: 0; font-size: clamp(23px, 2.3vw, 30px); letter-spacing: -.04em; lin
             <option value="第5工場">第5工場</option>
           </select>
           <button class="button button-primary" id="addCraneButton" type="button">新規登録</button>
+          <button class="button" id="exportCsvButton" type="button" title="CSVでエクスポート">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:15px;height:15px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>CSV出力
+          </button>
+          <label class="button" style="cursor:pointer" title="CSVでインポート（上書き）">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:15px;height:15px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 10l-5 5-5-5M12 15V3"/></svg>CSV入力
+            <input type="file" id="importCsvInput" accept=".csv" style="display:none" aria-label="CSVファイルを選択">
+          </label>
         </div>
         <p class="inventory-provenance">参照元: 配置図Excel「2025.4（クレーン検査）」シート。Excel内には複数時点のシートがあるため、この一覧を最新の正式台帳とは扱わず、実運用前に原本との照合が必要です。検査証期限も原票記載値を表示しています。</p>
         <div class="table-wrap">
@@ -1007,9 +1014,16 @@ function renderInventory() {
     const expiryCell = element("td",expiry === "原票記載なし" ? "expiry-soon" : "",expiry);
     row.append(expiryCell);
     const actionCell = document.createElement("td");
+    actionCell.style.display = "flex";
+    actionCell.style.gap = "4px";
+    actionCell.style.flexWrap = "wrap";
     const open = element("button","button","点検を開く");
     open.type = "button"; open.addEventListener("click",() => openCraneFromInventory(factory,number,capacity,certificate,expiry));
-    actionCell.append(open); row.append(actionCell);
+    const edit = element("button","button","編集");
+    edit.type = "button"; edit.style.background = "#eef1ee"; edit.addEventListener("click",() => openEditCraneModal(factory,number,capacity,certificate,expiry));
+    const del = element("button","button","削除");
+    del.type = "button"; del.style.background = "#fbecea"; del.style.borderColor = "#e5b1ab"; del.style.color = "#ad4438"; del.addEventListener("click",() => confirmDeleteCrane(factory,number));
+    actionCell.append(open, edit, del); row.append(actionCell);
     tbody.append(row);
   });
 }
@@ -1153,6 +1167,221 @@ function openAddCraneModal() {
     showToast(`${factory} ${craneNo} を登録しました。`);
     closeModal();
   });
+}
+
+function openEditCraneModal(originalFactory, originalNumber, originalCapacity, originalCertificate, originalExpiry) {
+  const body = element("div");
+  body.style.cssText = "display:grid;gap:10px;margin-top:8px";
+
+  const existingFactories = [...new Set(craneInventory.map(([f]) => f))].sort();
+
+  const fields = [
+    { id: "editFactory", label: "設置工場", type: "text", required: true, placeholder: "例: 第1工場", list: "factoryListEdit", value: originalFactory },
+    { id: "editCraneNo", label: "クレーン番号", type: "text", required: true, placeholder: "例: 1-天7", value: originalNumber },
+    { id: "editCapacity", label: "定格荷重", type: "text", required: true, placeholder: "例: 10", value: originalCapacity },
+    { id: "editCertificate", label: "検査証番号", type: "text", required: true, placeholder: "例: 1234", value: originalCertificate },
+    { id: "editExpiry", label: "検査証期限", type: "text", required: true, placeholder: "例: 令和7年12月31日", value: originalExpiry }
+  ];
+
+  const inputs = {};
+  fields.forEach(({id, label, type, required, placeholder, list, value}) => {
+    const wrapper = element("div");
+    wrapper.style.cssText = "display:grid;gap:4px";
+    const labelEl = element("label", "", label + (required ? " *" : ""));
+    labelEl.style.fontSize = "11px";
+    labelEl.style.fontWeight = "700";
+    const input = document.createElement("input");
+    input.type = type;
+    input.id = id;
+    input.placeholder = placeholder || "";
+    input.value = value || "";
+    input.style.minHeight = "36px";
+    input.style.padding = "6px 9px";
+    input.required = required;
+    if (list) input.setAttribute("list", list);
+    wrapper.append(labelEl, input);
+    body.append(wrapper);
+    inputs[id] = input;
+  });
+
+  // Add datalist for factory autocomplete
+  const datalist = document.createElement("datalist");
+  datalist.id = "factoryListEdit";
+  existingFactories.forEach(f => {
+    const option = document.createElement("option");
+    option.value = f;
+    datalist.append(option);
+  });
+  body.append(datalist);
+
+  openModal("クレーン編集", `"${originalFactory} ${originalNumber}" の情報を編集します。`, body, "保存", () => {
+    const factory = inputs.editFactory.value.trim();
+    const craneNo = inputs.editCraneNo.value.trim();
+    const capacity = inputs.editCapacity.value.trim();
+    const certificate = inputs.editCertificate.value.trim();
+    const expiry = inputs.editExpiry.value.trim();
+
+    if (!factory || !craneNo || !capacity || !certificate || !expiry) {
+      showToast("すべての項目を入力してください。", true);
+      return false;
+    }
+
+    // Check duplicate (excluding the original)
+    const exists = craneInventory.some(([f, n]) => f === factory && n === craneNo && !(f === originalFactory && n === originalNumber));
+    if (exists) {
+      showToast("同じ工場に同じクレーン番号が既に存在します。", true);
+      return false;
+    }
+
+    // Find and update the item
+    const idx = craneInventory.findIndex(([f, n]) => f === originalFactory && n === originalNumber);
+    if (idx !== -1) {
+      craneInventory[idx] = [factory, craneNo, capacity, certificate, expiry];
+      saveCraneInventory();
+      updatePlantFilter();
+      renderInventory();
+      document.getElementById("inventoryCount").textContent = String(craneInventory.length);
+      showToast(`${factory} ${craneNo} を更新しました。`);
+      closeModal();
+    }
+  });
+}
+
+function confirmDeleteCrane(factory, number) {
+  const body = element("div");
+  body.style.cssText = "display:grid;gap:8px;margin-top:8px;color:var(--red)";
+  body.append(element("p", "", `「${factory} ${number}」を削除しますか？`));
+  body.append(element("p", "", "この操作は元に戻せません。"));
+
+  openModal("クレーン削除", "削除確認", body, "削除", () => {
+    const idx = craneInventory.findIndex(([f, n]) => f === factory && n === number);
+    if (idx !== -1) {
+      craneInventory.splice(idx, 1);
+      saveCraneInventory();
+      updatePlantFilter();
+      renderInventory();
+      document.getElementById("inventoryCount").textContent = String(craneInventory.length);
+      showToast(`${factory} ${number} を削除しました。`);
+    }
+    closeModal();
+  });
+}
+
+function exportCraneInventoryCsv() {
+  const headers = ["設置工場", "クレーン番号", "定格荷重", "検査証番号", "検査証期限"];
+  const rows = craneInventory.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","));
+  const csv = [headers.join(","), ...rows].join("\n");
+  
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  const date = new Date();
+  const dateStr = `${date.getFullYear()}${String(date.getMonth()+1).padStart(2,"0")}${String(date.getDate()).padStart(2,"0")}`;
+  link.download = `crane_inventory_${dateStr}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+  showToast("CSVをエクスポートしました。");
+}
+
+function importCraneInventoryCsv(file) {
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const text = e.target.result;
+      const lines = text.split(/\r?\n/).filter(line => line.trim());
+      if (lines.length < 2) throw new Error("CSVデータが不正です（ヘッダーのみ、または空です）。");
+      
+      const headers = lines[0].split(",").map(h => h.replace(/^"|"$/g, '').trim());
+      const expectedHeaders = ["設置工場", "クレーン番号", "定格荷重", "検査証番号", "検査証期限"];
+      
+      // Validate headers (flexible matching)
+      const hasRequired = expectedHeaders.every(h => headers.some(hh => hh.includes(h)));
+      if (!hasRequired) throw new Error("CSVヘッダーが一致しません。必要な列: 設置工場, クレーン番号, 定格荷重, 検査証番号, 検査証期限");
+      
+      const newInventory = [];
+      const errors = [];
+      
+      for (let i = 1; i < lines.length; i++) {
+        // Simple CSV parse (handles quoted fields)
+        const row = parseCsvLine(lines[i]);
+        if (row.length < 5) {
+          errors.push(`行 ${i+1}: 列数が不足しています`);
+          continue;
+        }
+        const [factory, craneNo, capacity, certificate, expiry] = row.map(c => c.trim());
+        if (!factory || !craneNo || !capacity || !certificate || !expiry) {
+          errors.push(`行 ${i+1}: 必須項目が空です`);
+          continue;
+        }
+        newInventory.push([factory, craneNo, capacity, certificate, expiry]);
+      }
+      
+      if (errors.length > 0) {
+        showToast(`インポートエラー: ${errors.join("; ")}`, true);
+        return;
+      }
+      
+      // Check for duplicates within the import
+      const seen = new Set();
+      const dupes = newInventory.filter(([f, n]) => {
+        const key = `${f}|${n}`;
+        if (seen.has(key)) return true;
+        seen.add(key);
+        return false;
+      });
+      if (dupes.length > 0) {
+        showToast(`インポートデータ内に重複があります: ${dupes.map(([f,n]) => `${f} ${n}`).join(", ")}`, true);
+        return;
+      }
+      
+      // Confirm replacement
+      const body = element("div");
+      body.style.cssText = "display:grid;gap:8px;margin-top:8px";
+      body.append(element("p", "", `${newInventory.length}件のデータをインポートします。`));
+      body.append(element("p", "", "現在の台帳データはすべて置き換わります。よろしいですか？"));
+      
+      openModal("CSVインポート確認", `${newInventory.length}件のデータを読み込みました。`, body, "インポート実行", () => {
+        craneInventory.length = 0;
+        craneInventory.push(...newInventory);
+        saveCraneInventory();
+        updatePlantFilter();
+        renderInventory();
+        document.getElementById("inventoryCount").textContent = String(craneInventory.length);
+        document.getElementById("homeCraneCount").textContent = `${craneInventory.length}台`;
+        showToast(`${newInventory.length}件をインポートしました。`);
+        closeModal();
+      });
+      
+    } catch (err) {
+      showToast(`インポート失敗: ${err.message}`, true);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function parseCsvLine(line) {
+  const result = [];
+  let current = "";
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      if (inQuotes && line[i+1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = "";
+    } else {
+      current += char;
+    }
+  }
+  result.push(current);
+  return result.map(c => c.replace(/^"|"$/g, ''));
 }
 
 function openCraneFromInventory(factory,number,capacity,certificate,expiry) {
@@ -1681,6 +1910,8 @@ document.getElementById("filterSelect").addEventListener("change",updateView);
 document.getElementById("inventorySearch").addEventListener("input",renderInventory);
 document.getElementById("plantFilter").addEventListener("change",renderInventory);
 document.getElementById("addCraneButton").addEventListener("click",openAddCraneModal);
+document.getElementById("exportCsvButton").addEventListener("click",exportCraneInventoryCsv);
+document.getElementById("importCsvInput").addEventListener("change",(e) => { if (e.target.files[0]) importCraneInventoryCsv(e.target.files[0]); e.target.value = ""; });
 document.getElementById("forkliftYear").addEventListener("input",() => { updateForkliftDays(); updateForkliftSummary(); });
 document.getElementById("forkliftMonth").addEventListener("change",() => { updateForkliftDays(); updateForkliftSummary(); });
 document.getElementById("forkliftId").addEventListener("input",updateForkliftSummary);
