@@ -1,14 +1,14 @@
-# OS files
-.DS_Store
-Thumbs.db
+# Ignore everything in this repository except the crane inspection demo.
+# Files are only untracked, never deleted from disk.
 
-# Editor files
-.vscode/
+/*
+!/.gitignore
 
-# Temporary files
-*.log
-*.tmp
-
-# Local archives
-*.zip
-*.rar
+# Whitelist the path to the demo file, one directory at a time.
+!/Crane_Self_Inspecction_Record_Sheet/
+/Crane_Self_Inspecction_Record_Sheet/*
+!/Crane_Self_Inspecction_Record_Sheet/Project_demo_file/
+/Crane_Self_Inspecction_Record_Sheet/Project_demo_file/*
+!/Crane_Self_Inspecction_Record_Sheet/Project_demo_file/New_demo/
+/Crane_Self_Inspecction_Record_Sheet/Project_demo_file/New_demo/*
+!/Crane_Self_Inspecction_Record_Sheet/Project_demo_file/New_demo/crane_inspection_demo_v2.html
