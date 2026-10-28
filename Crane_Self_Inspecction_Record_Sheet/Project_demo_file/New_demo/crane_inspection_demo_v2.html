@@ -614,6 +614,7 @@ h1 { margin: 0; font-size: clamp(23px, 2.3vw, 30px); letter-spacing: -.04em; lin
             <option value="第3工場">第3工場</option><option value="第4工場">第4工場</option>
             <option value="第5工場">第5工場</option>
           </select>
+          <button class="button button-primary" id="addCraneButton" type="button">新規登録</button>
         </div>
         <p class="inventory-provenance">参照元: 配置図Excel「2025.4（クレーン検査）」シート。Excel内には複数時点のシートがあるため、この一覧を最新の正式台帳とは扱わず、実運用前に原本との照合が必要です。検査証期限も原票記載値を表示しています。</p>
         <div class="table-wrap">
@@ -683,44 +684,8 @@ const forkliftCategories = ["制動・操縦装置","荷役・油圧装置","車
 const forkliftStatuses = [["","未入力"],["good","○ 良好"],["warn","△ 要注意"],["bad","× 不良"],["na","／ 対象外"]];
 const forkliftDailyKey = "forklift-daily-demo-v2";
 const forkliftMonthlyKey = "forklift-monthly-demo-v2";
-const craneInventory = [
-  ["第1工場","1-天6","10","776","令和7年8月14日"],
-  ["第1工場","1-天5","10","615","令和8年4月17日"],
-  ["第1工場","1-天4","10","950","令和8年4月17日"],
-  ["第1工場","1-天3","10","614","令和8年4月17日"],
-  ["第1工場","1-天2","10","949","令和8年4月17日"],
-  ["第1工場","1-天1","10","1106","令和7年9月23日"],
-  ["第1工場","1-門3","5","733","令和7年5月2日"],
-  ["第1工場","1-門2","5","781","令和7年6月18日"],
-  ["第1工場","1-門1","4.8","780","令和7年6月18日"],
-  ["第2工場","2-天6","10","669","令和10年4月17日"],
-  ["第2工場","2-天5","10","775","令和7年8月14日"],
-  ["第2工場","2-天4","10","1161","令和6年10月30日"],
-  ["第2工場","2-天3","10","777","令和7年8月14日"],
-  ["第2工場","2-天2","10","1110","令和7年8月8日"],
-  ["第2工場","2-天1","10","1109","令和7年8月8日"],
-  ["第2工場","2-門4","5","783","令和5年6月18日"],
-  ["第2工場","2-門3","5","782","令和5年6月18日"],
-  ["第2工場","2-門2","5","899","令和8年4月22日"],
-  ["第2工場","2-門1","4.8","1107","令和7年10月6日"],
-  ["第3工場","3-天5","5","778","令和5年6月18日"],
-  ["第3工場","3-天4","10","1051","令和5年5月7日"],
-  ["第3工場","3-天3","10","1050","令和5年5月7日"],
-  ["第3工場","3-天2","5","952","令和8年4月17日"],
-  ["第3工場","3-天1","5","951","令和8年4月17日"],
-  ["第3工場","3-門3","4.8","1194","令和8年1月29日"],
-  ["第3工場","3-門2","4.8","1193","令和8年1月29日"],
-  ["第3工場","3-門1","4.8","1108","令和7年10月6日"],
-  ["第4工場","4-天3","5","1159","令和6年10月23日"],
-  ["第4工場","4-天2","5","1160","令和6年10月23日"],
-  ["第4工場","4-天1","5","1114","令和7年8月8日"],
-  ["第4工場","4-門4","4.8","1196","令和8年1月29日"],
-  ["第4工場","4-門3","4.8","1174","令和7年9月10日"],
-  ["第4工場","4-門2","4.8","1195","令和8年1月29日"],
-  ["第4工場","4-門1","4.8","1173","令和7年9月10日"],
-  ["第5工場","5-天2","2.8","—","原票記載なし"],
-  ["第5工場","5-天1","2.8","—","原票記載なし"]
-];
+const craneInventory = loadCraneInventory();
+const INVENTORY_STORAGE_KEY = "crane-inventory-demo-v2";
 const STORAGE_KEY = "crane-inspection-demo-v2";
 const checklistRoot = document.getElementById("checklist");
 const state = { mode: "4", recordMode: "sample", status: new Map(), remarks: new Map(), followUps: new Map() };
@@ -1046,6 +1011,147 @@ function renderInventory() {
     open.type = "button"; open.addEventListener("click",() => openCraneFromInventory(factory,number,capacity,certificate,expiry));
     actionCell.append(open); row.append(actionCell);
     tbody.append(row);
+  });
+}
+
+function loadCraneInventory() {
+  const defaultInventory = [
+    ["第1工場","1-天6","10","776","令和7年8月14日"],
+    ["第1工場","1-天5","10","615","令和8年4月17日"],
+    ["第1工場","1-天4","10","950","令和8年4月17日"],
+    ["第1工場","1-天3","10","614","令和8年4月17日"],
+    ["第1工場","1-天2","10","949","令和8年4月17日"],
+    ["第1工場","1-天1","10","1106","令和7年9月23日"],
+    ["第1工場","1-門3","5","733","令和7年5月2日"],
+    ["第1工場","1-門2","5","781","令和7年6月18日"],
+    ["第1工場","1-門1","4.8","780","令和7年6月18日"],
+    ["第2工場","2-天6","10","669","令和10年4月17日"],
+    ["第2工場","2-天5","10","775","令和7年8月14日"],
+    ["第2工場","2-天4","10","1161","令和6年10月30日"],
+    ["第2工場","2-天3","10","777","令和7年8月14日"],
+    ["第2工場","2-天2","10","1110","令和7年8月8日"],
+    ["第2工場","2-天1","10","1109","令和7年8月8日"],
+    ["第2工場","2-門4","5","783","令和5年6月18日"],
+    ["第2工場","2-門3","5","782","令和5年6月18日"],
+    ["第2工場","2-門2","5","899","令和8年4月22日"],
+    ["第2工場","2-門1","4.8","1107","令和7年10月6日"],
+    ["第3工場","3-天5","5","778","令和5年6月18日"],
+    ["第3工場","3-天4","10","1051","令和5年5月7日"],
+    ["第3工場","3-天3","10","1050","令和5年5月7日"],
+    ["第3工場","3-天2","5","952","令和8年4月17日"],
+    ["第3工場","3-天1","5","951","令和8年4月17日"],
+    ["第3工場","3-門3","4.8","1194","令和8年1月29日"],
+    ["第3工場","3-門2","4.8","1193","令和8年1月29日"],
+    ["第3工場","3-門1","4.8","1108","令和7年10月6日"],
+    ["第4工場","4-天3","5","1159","令和6年10月23日"],
+    ["第4工場","4-天2","5","1160","令和6年10月23日"],
+    ["第4工場","4-天1","5","1114","令和7年8月8日"],
+    ["第4工場","4-門4","4.8","1196","令和8年1月29日"],
+    ["第4工場","4-門3","4.8","1174","令和7年9月10日"],
+    ["第4工場","4-門2","4.8","1195","令和8年1月29日"],
+    ["第4工場","4-門1","4.8","1173","令和7年9月10日"],
+    ["第5工場","5-天2","2.8","—","原票記載なし"],
+    ["第5工場","5-天1","2.8","—","原票記載なし"]
+  ];
+  try {
+    const saved = window.localStorage.getItem(INVENTORY_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed) && parsed.every(row => Array.isArray(row) && row.length === 5)) {
+        return parsed;
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to load crane inventory:", e);
+  }
+  return defaultInventory;
+}
+
+function saveCraneInventory() {
+  try {
+    window.localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(craneInventory));
+  } catch (e) {
+    showToast(`設備台帳の保存に失敗しました: ${e.message}`, true);
+  }
+}
+
+function updatePlantFilter() {
+  const select = document.getElementById("plantFilter");
+  const currentValue = select.value;
+  const plants = [...new Set(craneInventory.map(([factory]) => factory))].sort();
+  select.innerHTML = '<option value="">すべての工場</option>' + plants.map(p => `<option value="${p}">${p}</option>`).join("");
+  select.value = currentValue;
+}
+
+function openAddCraneModal() {
+  const body = element("div");
+  body.style.cssText = "display:grid;gap:10px;margin-top:8px";
+
+  const existingFactories = [...new Set(craneInventory.map(([f]) => f))].sort();
+
+  const fields = [
+    { id: "addFactory", label: "設置工場", type: "text", required: true, placeholder: "例: 第1工場", list: "factoryList" },
+    { id: "addCraneNo", label: "クレーン番号", type: "text", required: true, placeholder: "例: 1-天7" },
+    { id: "addCapacity", label: "定格荷重", type: "text", required: true, placeholder: "例: 10" },
+    { id: "addCertificate", label: "検査証番号", type: "text", required: true, placeholder: "例: 1234" },
+    { id: "addExpiry", label: "検査証期限", type: "text", required: true, placeholder: "例: 令和7年12月31日" }
+  ];
+
+  const inputs = {};
+  fields.forEach(({id, label, type, required, placeholder, list}) => {
+    const wrapper = element("div");
+    wrapper.style.cssText = "display:grid;gap:4px";
+    const labelEl = element("label", "", label + (required ? " *" : ""));
+    labelEl.style.fontSize = "11px";
+    labelEl.style.fontWeight = "700";
+    const input = document.createElement("input");
+    input.type = type;
+    input.id = id;
+    input.placeholder = placeholder || "";
+    input.style.minHeight = "36px";
+    input.style.padding = "6px 9px";
+    input.required = required;
+    if (list) input.setAttribute("list", list);
+    wrapper.append(labelEl, input);
+    body.append(wrapper);
+    inputs[id] = input;
+  });
+
+  // Add datalist for factory autocomplete
+  const datalist = document.createElement("datalist");
+  datalist.id = "factoryList";
+  existingFactories.forEach(f => {
+    const option = document.createElement("option");
+    option.value = f;
+    datalist.append(option);
+  });
+  body.append(datalist);
+
+  openModal("クレーン新規登録", "新しいクレーン設備を台帳に追加します。", body, "登録", () => {
+    const factory = inputs.addFactory.value.trim();
+    const craneNo = inputs.addCraneNo.value.trim();
+    const capacity = inputs.addCapacity.value.trim();
+    const certificate = inputs.addCertificate.value.trim();
+    const expiry = inputs.addExpiry.value.trim();
+
+    if (!factory || !craneNo || !capacity || !certificate || !expiry) {
+      showToast("すべての項目を入力してください。", true);
+      return false;
+    }
+
+    const exists = craneInventory.some(([f, n]) => f === factory && n === craneNo);
+    if (exists) {
+      showToast("同じ工場に同じクレーン番号が既に存在します。", true);
+      return false;
+    }
+
+    craneInventory.push([factory, craneNo, capacity, certificate, expiry]);
+    saveCraneInventory();
+    updatePlantFilter();
+    renderInventory();
+    document.getElementById("inventoryCount").textContent = String(craneInventory.length);
+    showToast(`${factory} ${craneNo} を登録しました。`);
+    closeModal();
   });
 }
 
@@ -1565,6 +1671,7 @@ buildChecklist();
 buildAnnualFields();
 buildForkliftModule();
 renderInventory();
+updatePlantFilter();
 document.getElementById("inventoryCount").textContent = String(craneInventory.length);
 document.getElementById("homeCraneCount").textContent = `${craneInventory.length}台`;
 updateView();
@@ -1573,6 +1680,7 @@ document.getElementById("searchInput").addEventListener("input",updateView);
 document.getElementById("filterSelect").addEventListener("change",updateView);
 document.getElementById("inventorySearch").addEventListener("input",renderInventory);
 document.getElementById("plantFilter").addEventListener("change",renderInventory);
+document.getElementById("addCraneButton").addEventListener("click",openAddCraneModal);
 document.getElementById("forkliftYear").addEventListener("input",() => { updateForkliftDays(); updateForkliftSummary(); });
 document.getElementById("forkliftMonth").addEventListener("change",() => { updateForkliftDays(); updateForkliftSummary(); });
 document.getElementById("forkliftId").addEventListener("input",updateForkliftSummary);
